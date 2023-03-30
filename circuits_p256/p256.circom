@@ -1,4 +1,4 @@
-// TODO FILE
+// DONE FILE
 
 pragma circom 2.0.2;
 
@@ -95,7 +95,7 @@ template AddUnequalCubicConstraint() {
 // done
 // Implements:
 // x3y2 + x2y3 + x2y1 - x3y1 - x1y2 - x1y3 == 0 mod p
-// for secp prime p
+// for hardcoded prime p (here p256)
 // used to show (x1, y1), (x2, y2), (x3, -y3) are co-linear
 template P256PointOnLine() {
     signal input x1[4];
@@ -151,7 +151,9 @@ template P256PointOnLine() {
     }
 }
 
-// TODO
+// DONE
+// checks if (x3, -y3) lies on the tangent line of (x1, y1),
+// which is necessary for checking if (x3, y3) is (x1, y1)^2 
 template P256PointOnTangent() {
     signal input x1[4];
     signal input y1[4];
@@ -181,15 +183,31 @@ template P256PointOnTangent() {
     for (var i = 0; i < 4; i++) x12x3Comp.b[i] <== x3[i];
     for (var i = 0; i < 10; i++) x12x3[i] <== x12x3Comp.a2b1[i];
 
+    // done
+    // next, we compute representations of ax3, ax1
+    signal A[4] = get_A(64, 4);
+    
+    signal Ax1[7];
+    component Ax1Comp = BigMultNoCarry(64, 64, 64, 4, 4);
+    for (var i = 0; i < 4; i++) Ax1Comp.a[i] <== x1[i];
+    for (var i = 0; i < 4; i++) Ax1Comp.b[i] <== A[i];
+    for (var i = 0; i < 7; i++) Ax1[i] <== Ax1Comp.out[i];
+
+    signal Ax3[7];
+    component Ax3Comp = BigMultNoCarry(64, 64, 64, 4, 4);
+    for (var i = 0; i < 4; i++) Ax3Comp.a[i] <== x3[i];
+    for (var i = 0; i < 4; i++) Ax3Comp.b[i] <== A[i];
+    for (var i = 0; i < 7; i++) Ax3[i] <== Ax3Comp.out[i];
+
     component zeroCheck = CheckCubicModPIsZero(199);
     for (var i = 0; i < 10; i++) {
-        if (i < 7) zeroCheck.in[i] <== 2 * y12[i] + 2 * y1y3[i] - 3 * x13[i] + 3 * x12x3[i];
+        if (i < 7) zeroCheck.in[i] <== 2 * y12[i] + 2 * y1y3[i] - 3 * x13[i] + 3 * x12x3[i] + Ax3[i] - Ax1[i];
         else zeroCheck.in[i] <== -3 * x13[i] + 3 * x12x3[i];
     }
 }
 
 
-// TODO
+// DONE
 // Implements:
 // x^3 + Ax + B - y^2 == 0 mod p
 // where A, B, p are params of P256 curve (p is field size)
@@ -208,11 +226,21 @@ template P256PointOnCurve() {
     component y2Comp = A2NoCarry();
     for (var i = 0; i < 4; i++) y2Comp.a[i] <== y[i];
     for (var i = 0; i < 7; i++) y2[i] <== y2Comp.a2[i];
+
+    // next, we compute representations of Ax and B.
+    signal A[4] = get_A(64, 4);
+    signal B[4] = get_B(64, 4);
+    
+    signal Ax[7];
+    component AxComp = BigMultNoCarry(64, 64, 64, 4, 4);
+    for (var i = 0; i < 4; i++) AxComp.a[i] <== x[i];
+    for (var i = 0; i < 4; i++) AxComp.b[i] <== A[i];
+    for (var i = 0; i < 7; i++) Ax[i] <== AxComp.out[i];
     
     component zeroCheck = CheckCubicModPIsZero(197); // 197 bits per register
     for (var i = 0; i < 10; i++) {
-        if (i == 0) zeroCheck.in[i] <== x3[i] - y2[i] + 7;
-        else if (i < 7) zeroCheck.in[i] <== x3[i] - y2[i];
+        if (i < 4) zeroCheck.in[i] <== x3[i] - y2[i] + Ax[i] + B[i];
+        else if (i < 7) zeroCheck.in[i] <== x3[i] - y2[i] + Ax[i];
         else zeroCheck.in[i] <== x3[i];
     }
 }

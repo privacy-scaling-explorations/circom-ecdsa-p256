@@ -37,6 +37,7 @@ pragma circom 2.0.2;
 // }
 
 //done
+// returns n-bit k-register representation of A coefficient in P256 elliptic curve
 function get_A(n, k) {
     assert((n == 86 && k == 3) || (n == 64 && k == 4));
     var ret[100];
@@ -51,6 +52,25 @@ function get_A(n, k) {
         ret[1] = 4294967295;
         ret[2] = 0;
         ret[3] = 18446744069414584321;
+    }
+    return ret;
+}
+
+//done
+function get_B(n,k) {
+    assert((n == 86 && k == 3) || (n == 64 && k == 4));
+    var ret[100];
+    if (n == 86 && k == 3) {
+        ret[0] = 23805269282153275520606283;
+        ret[1] = 64478498050055519801623345;
+        ret[2] = 6858709101169761702330043;
+    }
+
+    if (n == 64 && k == 4) {
+        ret[0] = 4309448131093880907;
+        ret[1] = 7285987128567378166;
+        ret[2] = 12964664127075681980;
+        ret[3] = 6540974713487397863;
     }
     return ret;
 }

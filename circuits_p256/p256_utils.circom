@@ -4,27 +4,34 @@ pragma circom 2.0.2;
 
 include "bigint_func.circom";
 
-// TODO
-// 10 registers, 64 bits. registers can be overful
-// adds 43 bits to overflow, so don't input overful registers which are > 208 bits
-// input registers can also be negative; the overall input can be negative as well
-template Secp256k1PrimeReduce10Registers() {
+// P = 2^256 - 2^224 + 2^192 + 2^96 - 1
+
+// input: 10 registers, 64 bits each. registers can be overful
+// returns: reduced number with 4 registers, preserving residue mod P
+// TODO: changing the curve...
+//      offset is too big to use immediately (on the order of 2^224)
+//      need overflow to be at most 53, since there are 200-bit overflow inputs (see p256.circom circuit AddUnequalCubicConstraint)
+template Secp256k1PrimeReduce10Registers()
     signal input in[10];
 
     signal output out[4];
-    var offset = (1<<32) + 977; // 33 bits
-    var offset2 = ((1<<33) * 977) + (977 ** 2); // 43 bits
+    // var offset = (1<<32) + 977; // 33 bits 
+    // var offset2 = ((1<<33) * 977) + (977 ** 2); // 43 bits
+    // offset = 4 registers over = * 2^256 (mod P) = (* 2^224 - 2^192 - 2^96 + 1  (mod P)
+    var offset = (1<<96) * (1<<128- 1) / (1<<4 - 1) - (1<<192); // ~220 bits......
+
     
-    out[3] <== (offset * in[7]) + in[3];
-    out[2] <== (offset * in[6]) + in[2] + in[9];
+    out[3] <== (offset * in[7]) + in[3]; // 4 registers over = * 2^256 = * offset (mod P)
+    out[2] <== (offset * in[6]) + in[2] + in[9]; // offset2 techincally includes 1<<64 => in[9] carries over from out[1]
     out[1] <== (offset2 * in[9]) + (offset * in[5]) + in[1] + in[8];
     out[0] <== (offset2 * in[8]) + (offset * in[4]) + in[0];
 }
 
-// TODO
-// 7 registers, 64 bits. registers can be overful
-// adds 33 bits to overflow, so don't input overful registers which are > 218 bits
-// input registers can also be negative; the overall input can be negative as well
+// input: 7 registers, 64 bits each. registers can be overful
+// returns: reduced number with 4 registers, preserving residue mod P
+// TODO: changing the curve...
+//      offset is too big to use immediately (on the order of 2^224)
+//      need overflow to be at most 53, since there are 200-bit overflow inputs (see p256.circom circuit AddUnequalCubicConstraint)
 template Secp256k1PrimeReduce7Registers() {
     signal input in[7];
 
@@ -37,30 +44,60 @@ template Secp256k1PrimeReduce7Registers() {
     out[0] <== (offset * in[4]) + in[0];
 }
 
-// TODO
+// DONE
+// check that in is in range [0, P-1]
+// want to look at P base 2^64 - as long as number is less than that, good (check ranges from largest to smallest digit)
+// P = 18446744073709551615 * 2^0 + 4294967295 * 2^64 + 0 * 2^128 + 18446744069414584321 * 2^192
 template CheckInRangeP256 () {
     signal input in[4];
-    component range64[4];
-    for(var i = 0; i < 4; i++){
-        range64[i] = Num2Bits(64);
-        range64[i].in <== in[i];
-    }
-    component isEqual[3];
-    signal allEqual[4];
-    allEqual[0] <== 1;
-    for(var i = 1; i < 4; i++){
-        isEqual[i-1] = IsEqual();
-        isEqual[i-1].in[0] <== in[i];
-        isEqual[i-1].in[1] <== (1<<64)-1;
-        allEqual[i] <== allEqual[i-1] * isEqual[i-1].out;
-    }
-    signal c;
-    c <== (1<<64) - ((1<<32) + (1<<9) + (1<<8) + (1<<7) + (1<<6) + (1<<4) + 1);
-    //lowest register is less than c
-    component lessThan = LessThan(64);
-    lessThan.in[0] <== in[0];
-    lessThan.in[1] <== c;
-    (1-lessThan.out) * allEqual[3] === 0;
+
+    component firstPlaceLessThan = LessThan(64);
+    firstPlaceLessThan.in[0] <== in[3];
+    firstPlaceLessThan.in[1] <== 18446744069414584321;
+
+    component firstPlaceEqual = IsEqual()
+    firstPlaceEqual.in[0] <== in[3];
+    firstPlaceEqual.in[1] <== 18446744069414584321;
+
+    component secondPlaceLessThan = LessThan(64);
+    secondPlaceLessThan.in[0] <== in[2];
+    secondPlaceLessThan.in[1] <== 0;
+
+    component secondPlaceEqual = IsEqual()
+    secondPlaceEqual.in[0] <== in[2];
+    secondPlaceEqual.in[1] <== 0;
+
+    component thirdPlaceLessThan = LessThan(64);
+    thirdPlaceLessThan.in[0] <== in[1];
+    thirdPlaceLessThan.in[1] <== 4294967295;
+
+    component thirdPlaceEqual = IsEqual()
+    thirdPlaceEqual.in[0] <== in[1];
+    thirdPlaceEqual.in[1] <== 4294967295;
+
+    component fourthPlaceLessThan = LessThan(64);
+    fourthPlaceLessThan.in[0] <== in[0];
+    fourthPlaceLessThan.in[1] <== 18446744073709551615;
+
+    component fourthPlaceEqual = IsEqual()
+    fourthPlaceEqual.in[0] <== in[0];
+    fourthPlaceEqual.in[1] <== 18446744073709551615;
+
+    signal l1 <== 1 - firstPlaceLessThan.out;
+    signal e1 <== 1 - firstPlaceEqual.out;
+    signal l2 <== 1 - secondPlaceLessThan.out;
+    signal e2 <== 1 - secondPlaceEqual.out;
+    signal l3 <== 1 - thirdPlaceLessThan.out;
+    signal e3 <== 1 - thirdPlaceEqual.out;
+    signal l4 <== 1 - fourthPlaceLessThan.out;
+    signal e4 <== 1 - fourthPlaceEqual.out;
+
+    // d1d2d3d4 < P <=> (d1 less) OR 
+    //                  (d1 equal and d2 less) OR
+    //                  (d1 equal and d2 equal and d3 less) OR 
+    //                  (d1 equal and d2 equal and d3 equal and d4 less)
+    (l1 * (e1 + l2) * (e1 + e2 + l3) * (e1 + e2 + e3 + l4)) === 0;
+
 }
 
 // DONE
