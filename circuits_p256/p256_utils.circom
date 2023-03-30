@@ -11,7 +11,7 @@ include "bigint_func.circom";
 // TODO: changing the curve...
 //      offset is too big to use immediately (on the order of 2^224)
 //      need overflow to be at most 53, since there are 200-bit overflow inputs (see p256.circom circuit AddUnequalCubicConstraint)
-template Secp256k1PrimeReduce10Registers()
+template Secp256k1PrimeReduce10Registers() {
     signal input in[10];
 
     signal output out[4];

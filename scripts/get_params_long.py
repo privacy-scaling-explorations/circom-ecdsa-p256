@@ -1,5 +1,6 @@
 import math
 import sys
+import compute_p256_math
 
 parameters = {
     "P": 115792089210356248762697446949407573530086143415290314195533631308867097853951,
@@ -11,22 +12,16 @@ parameters = {
 }
 
 
-def get_long(n, k, x):
-    ret = []
-    for idx in range(k):
-        ret.append(x % (2 ** n))
-        x = x // (2 ** n)
-    return ret
-
-
 def get_all_parameters_long():
     return_string = ""
 
     nk_pairs = [(86, 3), (64, 4)]
     for (n, k) in nk_pairs:
+        return_string += "(n, k) = " + str((n, k)) + "\n"
         for param in parameters:
             return_string += param + " = " + \
-                str(get_long(n, k, parameters[param])) + "\n"
+                str(compute_p256_math.get_long(n, k, parameters[param])) + "\n"
+        return_string += "\n"
 
     return return_string
 
