@@ -53,7 +53,7 @@ function get_strided_bigint(stride: bigint, small_stride: bigint, x: bigint) {
   return ret;
 }
 
-describe.only('ECDSAPrivToPub', function () {
+describe('ECDSAPrivToPub', function () {
   this.timeout(1000 ** 10);
 
   // runs circom compilation
