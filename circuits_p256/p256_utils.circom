@@ -12,7 +12,7 @@ include "p256_func.circom";
 // TODO: changing the curve...
 //      offset is too big to use immediately (on the order of 2^224)
 //      need overflow to be at most 53, since there are 200-bit inputs (see p256.circom circuit AddUnequalCubicConstraint)
-template Secp256k1PrimeReduce10Registers() {
+template P256PrimeReduce10Registers() {
     signal input in[10];
 
     // PrimeReduce10Registers: 
@@ -46,7 +46,7 @@ template Secp256k1PrimeReduce10Registers() {
 // returns: reduced number with 4 registers, preserving residue mod P
 // PrimeReduce7Registers only called in CheckQuadraticModPIsZero, which have inputs at most 132 bits
 // so can directly reduce 2^(64i)*in[i] directly in 4 registers of 64 bits -> 64 bit overflow for 4 <= i <= 6
-template Secp256k1PrimeReduce7Registers() {
+template P256PrimeReduce7Registers() {
     signal input in[7];
 
     var in_coeffs = [[1, 0, 0, 0], 
@@ -144,18 +144,18 @@ template CheckCubicModPIsZero(m) {
     // now, we compute a positive number congruent to `in` expressible in *8* overflowed registers.
     // for this representation, individual registers are allowed to be negative, but the final number
     // will be nonnegative overall.
-    // first, we apply the secp 10-register reduction technique to reduce to *8* registers. this may result
+    // first, we apply the p256 10-register reduction technique to reduce to *8* registers. this may result
     // in a negative number overall, but preserves congruence mod p.
-    // our intermediate result is z = secpReduce(in)
+    // our intermediate result is z = p256reduce(in)
     // second, we add a big multiple of p to z, to ensure that our final result is positive. 
     // since the registers of z are m + 34 bits, its max abs value is 2^(m+34 + 224) + 2^(m+34 + 192) + 2^(m+34 + 160) + ...
     // so we add p * 2^(m+6) = (2^256-2^224 + eps) * 2^(m+6), which is a bit under 2^(m+262) and larger than |z| < 2^(m+34 + 224 + 3) = 2^(m+261)
 
     signal reduced[8];
 
-    component secpReducer = Secp256k1PrimeReduce10Registers(); // (32, 8)
+    component p256Reducer = P256PrimeReduce10Registers(); // (32, 8)
     for (var i = 0; i < 10; i++) {
-        secpReducer.in[i] <== in[i];
+        p256Reducer.in[i] <== in[i];
     }
     
     // also compute P as (32, 8) rep to add - multiple should still be the same since value stays same
@@ -166,11 +166,11 @@ template CheckCubicModPIsZero(m) {
 
     // reduced becomes (32, 8)
     for (var i = 0; i < 8; i++) {
-        reduced[i] <== secpReducer.out[i] + multipleOfP[i]; // max(m+34, m+38) + 1 = m+39 bits
+        reduced[i] <== p256Reducer.out[i] + multipleOfP[i]; // max(m+34, m+38) + 1 = m+39 bits
     }
 
     // now we compute the quotient q, which serves as a witness. we can do simple bounding to show
-    // q := reduced / P < (secpReducer + multipleofP) / 2^255 < (2^(m+262) + 2^(m+261)) / 2^255 < 2^(m+8)
+    // q := reduced / P < (p256Reducer + multipleofP) / 2^255 < (2^(m+262) + 2^(m+261)) / 2^255 < 2^(m+8)
     // so the expected quotient q is always expressive in *7* 32-bit registers (i.e. < 2^224)
     // as long as m < 216
     signal q[7];
@@ -263,23 +263,23 @@ template CheckQuadraticModPIsZero(m) {
     // now, we compute a positive number congruent to `in` expressible in 4 overflowed registers.
     // for this representation, individual registers are allowed to be negative, but the final number
     // will be nonnegative overall.
-    // first, we apply the secp 7-register reduction technique to reduce to 4 registers. this may result
+    // first, we apply the p256 7-register reduction technique to reduce to 4 registers. this may result
     // in a negative number overall, but preserves congruence mod p.
-    // our intermediate result is z = secpReduce(in)
+    // our intermediate result is z = p256Reduce(in)
     // second, we add a big multiple of p to z, to ensure that our final result is positive. 
     // since the registers of z are m + 33 bits, its max abs value is 2^(m+33 + 192) + 2^(m+33 + 128) + ...
     // so we add p * 2^(m-30), which is a bit under 2^(m+226) and larger than |z| < 2^(m+33+192) + eps
     signal reduced[4];
-    component secpReducer = Secp256k1PrimeReduce7Registers();
+    component p256Reducer = P256PrimeReduce7Registers();
     for (var i = 0; i < 7; i++) {
-        secpReducer.in[i] <== in[i];
+        p256Reducer.in[i] <== in[i];
     }
     signal multipleOfP[4];
     for (var i = 0; i < 4; i++) {
         multipleOfP[i] <== p[i] * (1 << (m-30)); // m - 30 + 64 = m + 34 bits
     }
     for (var i = 0; i < 4; i++) {
-        reduced[i] <== secpReducer.out[i] + multipleOfP[i]; // max(m+33, m+34) + 1 = m+35 bits
+        reduced[i] <== p256Reducer.out[i] + multipleOfP[i]; // max(m+33, m+34) + 1 = m+35 bits
     }
 
     // now we compute the quotient q, which serves as a witness. we can do simple bounding to show

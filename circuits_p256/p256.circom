@@ -13,7 +13,7 @@ include "p256_utils.circom";
 // done
 // Implements:
 // x_1 + x_2 + x_3 - lambda^2 = 0 mod p
-// where p is the secp256k1 field size
+// where p is the P256 field size
 // and lambda is the slope of the line between (x_1, y_1) and (x_2, y_2)
 // this equation is equivalent to:
 // x1^3 + x2^3 - x1^2x2 - x1x2^2 + x2^2x3 + x1^2x3 - 2x1x2x3 - y2^2 - 2y1y2 - y1^2 = 0 mod p
@@ -246,7 +246,7 @@ template P256PointOnCurve() {
 }
 
 // done
-template Secp256k1AddUnequal(n, k) {
+template P256AddUnequal(n, k) {
     assert(n == 64 && k == 4);
 
     signal input a[2][k];
@@ -299,7 +299,7 @@ template Secp256k1AddUnequal(n, k) {
 }
 
 // done
-template Secp256k1Double(n, k) {
+template P256Double(n, k) {
     assert(n == 64 && k == 4);
 
     signal input in[2][k];
@@ -349,7 +349,7 @@ template Secp256k1Double(n, k) {
 
 // modular exponentiation
 // done
-template Secp256k1ScalarMult(n, k) {
+template P256ScalarMult(n, k) {
     signal input scalar[k];
     signal input point[2][k];
 
@@ -389,8 +389,8 @@ template Secp256k1ScalarMult(n, k) {
                 }
             }
             if (i < k - 1 || j < n - 1) {
-                adders[n * i + j] = Secp256k1AddUnequal(n, k);
-                doublers[n * i + j] = Secp256k1Double(n, k);
+                adders[n * i + j] = P256AddUnequal(n, k);
+                doublers[n * i + j] = P256Double(n, k);
                 for (var idx = 0; idx < k; idx++) {
                     doublers[n * i + j].in[0][idx] <== partial[n * i + j + 1][0][idx];
                     doublers[n * i + j].in[1][idx] <== partial[n * i + j + 1][1][idx];

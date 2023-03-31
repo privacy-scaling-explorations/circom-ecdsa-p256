@@ -98,7 +98,7 @@ template ECDSAPrivToPub(n, k) {
     signal intermed1[num_strides - 1][2][k];
     signal intermed2[num_strides - 1][2][k];
     for (var i = 1; i < num_strides; i++) {
-        adders[i - 1] = Secp256k1AddUnequal(n, k);
+        adders[i - 1] = P256AddUnequal(n, k);
         for (var idx = 0; idx < k; idx++) {
             for (var l = 0; l < 2; l++) {
                 adders[i - 1].a[l][idx] <== partial[i - 1][l][idx];
@@ -189,7 +189,7 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
     }
 
     // compute (r * sinv) * pubkey
-    component pubkey_mult = Secp256k1ScalarMult(n, k);
+    component pubkey_mult = P256ScalarMult(n, k);
     for (var idx = 0; idx < k; idx++) {
         pubkey_mult.scalar[idx] <== pubkey_coeff.out[idx];
         pubkey_mult.point[0][idx] <== pubkey[0][idx];
@@ -197,7 +197,7 @@ template ECDSAVerifyNoPubkeyCheck(n, k) {
     }
 
     // compute (h * sinv) * G + (r * sinv) * pubkey
-    component sum_res = Secp256k1AddUnequal(n, k);
+    component sum_res = P256AddUnequal(n, k);
     for (var idx = 0; idx < k; idx++) {
         sum_res.a[0][idx] <== g_mult.pubkey[0][idx];
         sum_res.a[1][idx] <== g_mult.pubkey[1][idx];
