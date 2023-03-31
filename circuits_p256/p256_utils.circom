@@ -3,6 +3,7 @@
 pragma circom 2.0.2;
 
 include "bigint_func.circom";
+include "p256_func.circom";
 
 // P = 2^256 - 2^224 + 2^192 + 2^96 - 1
 
@@ -10,38 +11,63 @@ include "bigint_func.circom";
 // returns: reduced number with 4 registers, preserving residue mod P
 // TODO: changing the curve...
 //      offset is too big to use immediately (on the order of 2^224)
-//      need overflow to be at most 53, since there are 200-bit overflow inputs (see p256.circom circuit AddUnequalCubicConstraint)
+//      need overflow to be at most 53, since there are 200-bit inputs (see p256.circom circuit AddUnequalCubicConstraint)
 template Secp256k1PrimeReduce10Registers() {
     signal input in[10];
 
-    signal output out[4];
-    // var offset = (1<<32) + 977; // 33 bits 
-    // var offset2 = ((1<<33) * 977) + (977 ** 2); // 43 bits
-    // offset = 4 registers over = * 2^256 (mod P) = (* 2^224 - 2^192 - 2^96 + 1  (mod P)
-    var offset = (1<<96) * (1<<128- 1) / (1<<4 - 1) - (1<<192); // ~220 bits......
+    // PrimeReduce10Registers: 
+    var in_coeffs[10][8] = [[1, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 1, 0],
+                        [1, 0, 0, 4294967295, 4294967295, 4294967295, 4294967294, 0],
+                        [4294967295, 0, 1, 1, 4294967295, 4294967294, 0, 4294967294],
+                        [4294967294, 4294967294, 4294967295, 2, 2, 0, 1, 4294967294],
+                        [4294967295, 4294967294, 4294967294, 4294967295, 0, 2, 3, 0],
+                        [3, 0, 4294967295, 4294967291, 4294967294, 4294967295, 4294967293, 4],
+                        [2, 5, 3, 4294967294, 4294967289, 4294967291, 4294967292, 4294967292]]
 
+    var tmp[8] = [0,0,0,0,0,0,0,0];
+    for (var i=0; i<8; i++) {
+        for (var j=0; j<10; j++) {
+            tmp[i] += in_coeffs[j][i] * in[j];
+        }
+    }
     
-    out[3] <== (offset * in[7]) + in[3]; // 4 registers over = * 2^256 = * offset (mod P)
-    out[2] <== (offset * in[6]) + in[2] + in[9]; // offset2 techincally includes 1<<64 => in[9] carries over from out[1]
-    out[1] <== (offset2 * in[9]) + (offset * in[5]) + in[1] + in[8];
-    out[0] <== (offset2 * in[8]) + (offset * in[4]) + in[0];
+    signal output out[8]; // (32, 8)
+    for (var i=0; i<8; i++) {
+        out[i] <== tmp[i];
+    }
+
 }
 
+// DONE
 // input: 7 registers, 64 bits each. registers can be overful
 // returns: reduced number with 4 registers, preserving residue mod P
-// TODO: changing the curve...
-//      offset is too big to use immediately (on the order of 2^224)
-//      need overflow to be at most 53, since there are 200-bit overflow inputs (see p256.circom circuit AddUnequalCubicConstraint)
+// PrimeReduce7Registers only called in CheckQuadraticModPIsZero, which have inputs at most 132 bits
+// so can directly reduce 2^(64i)*in[i] directly in 4 registers of 64 bits -> 64 bit overflow for 4 <= i <= 6
 template Secp256k1PrimeReduce7Registers() {
     signal input in[7];
 
-    signal output out[4];
-    var offset = (1<<32) + 977; // 33 bits
-    
-    out[3] <== in[3];
-    out[2] <== (offset * in[6]) + in[2];
-    out[1] <== (offset * in[5]) + in[1];
-    out[0] <== (offset * in[4]) + in[0];
+    var in_coeffs = [[1, 0, 0, 0], 
+                    [0, 1, 0, 0], 
+                    [0, 0, 1, 0], 
+                    [0, 0, 0, 1], 
+                    [1, 18446744069414584320, 18446744073709551615, 4294967294], 
+                    [4294967295, 4294967297, 18446744069414584319, 18446744065119617024], 
+                    [18446744069414584318, 12884901887, 2, 18446744065119617025]]
+
+    var tmp[4] = [0,0,0,0];
+    for (var i=0; i<4; i++) {
+        for (var j=0; j<7; j++) {
+            tmp[i] += in_coeffs[j][i] * in[j];
+        }
+    }
+
+    signal output out[4]; // (64, 4)
+    for (var i=0; i<4; i++) {
+        out[i] <== tmp[i];
+    }
 }
 
 // DONE
@@ -104,80 +130,115 @@ template CheckInRangeP256 () {
 // 64 bit registers with m-bit overflow
 // registers (and overall number) are potentially negative
 template CheckCubicModPIsZero(m) {
-    assert(m < 206); // since we deal with up to m+46 bit, potentially negative registers
+    assert(m < 206); // since we deal with up to m+34 bit, potentially negative registers
 
     signal input in[10];
 
-    // the p256 field size, hardcoded
-    signal p[4];
-    p[0] <== 18446744073709551615;
-    p[1] <== 4294967295;
-    p[2] <== 0;
-    p[3] <== 18446744069414584321;
+    // the p256 field size in (32,8)-rep
+    signal p[8];
+    var p_32_8[8] = get_p256_prime(32, 8);
+    for (var i=0; i<8; i++) {
+        p[i] <== p_32_8[i]
+    }
 
-    // now, we compute a positive number congruent to `in` expressible in 4 overflowed registers.
+    // now, we compute a positive number congruent to `in` expressible in *8* overflowed registers.
     // for this representation, individual registers are allowed to be negative, but the final number
     // will be nonnegative overall.
-    // first, we apply the secp 10-register reduction technique to reduce to 4 registers. this may result
+    // first, we apply the secp 10-register reduction technique to reduce to *8* registers. this may result
     // in a negative number overall, but preserves congruence mod p.
     // our intermediate result is z = secpReduce(in)
     // second, we add a big multiple of p to z, to ensure that our final result is positive. 
-    // since the registers of z are m + 43 bits, its max abs value is 2^(m+43 + 192) + 2^(m+43 + 128) + ...
-    // so we add p * 2^(m-20), which is a bit under 2^(m+236) and larger than |z| < 2^(m+43+192) + eps
-    signal reduced[4];
-    component secpReducer = Secp256k1PrimeReduce10Registers();
+    // since the registers of z are m + 34 bits, its max abs value is 2^(m+34 + 224) + 2^(m+34 + 192) + 2^(m+34 + 160) + ...
+    // so we add p * 2^(m+6) = (2^256-2^224 + eps) * 2^(m+6), which is a bit under 2^(m+262) and larger than |z| < 2^(m+34 + 224 + 3) = 2^(m+261)
+
+    signal reduced[8];
+
+    component secpReducer = Secp256k1PrimeReduce10Registers(); // (32, 8)
     for (var i = 0; i < 10; i++) {
         secpReducer.in[i] <== in[i];
     }
+    
+    // also compute P as (32, 8) rep to add - multiple should still be the same since value stays same
     signal multipleOfP[4];
-    for (var i = 0; i < 4; i++) {
-        multipleOfP[i] <== p[i] * (1 << (m-20)); // m - 20 + 64 = m+44 bits
+    for (var i = 0; i < 8; i++) {
+        multipleOfP[i] <== p[i] * (1 << (m+6)); // m + 6 + 32 = m+38 bits
     }
-    for (var i = 0; i < 4; i++) {
-        reduced[i] <== secpReducer.out[i] + multipleOfP[i]; // max(m+43, m+44) + 1 = m+45 bits
+
+    // reduced becomes (32, 8)
+    for (var i = 0; i < 8; i++) {
+        reduced[i] <== secpReducer.out[i] + multipleOfP[i]; // max(m+34, m+38) + 1 = m+39 bits
     }
 
     // now we compute the quotient q, which serves as a witness. we can do simple bounding to show
-    // that the the expected quotient is always expressible in 3 registers (i.e. < 2^192)
-    // so long as m < 211
-    signal q[3];
+    // q := reduced / P < (secpReducer + multipleofP) / 2^255 < (2^(m+262) + 2^(m+261)) / 2^255 < 2^(m+8)
+    // so the expected quotient q is always expressive in *7* 32-bit registers (i.e. < 2^224)
+    // as long as m < 216
+    signal q[7];
 
-    var temp[100] = getProperRepresentation(m + 45, 64, 4, reduced);
-    var proper[8];
-    for (var i = 0; i < 8; i++) {
-        proper[i] = temp[i];
+    // getProperRepresentation(m, n, k, in) spec:
+    // m bits per overflowed register (values are potentially negative)
+    // n bits per properly-sized register
+    // in has k registers
+    // out has k + ceil(m/n) - 1 + 1 registers. highest-order potentially negative,
+    // all others are positive
+    // - 1 since the last register is included in the last ceil(m/n) array
+    // + 1 since the carries from previous registers could push you over
+    // TODO: need to check if largest register of proper is negative
+    var temp[100] = getProperRepresentation(m + 39, 32, 8, reduced);
+    var proper[16];
+    for (var i = 0; i<16; i++) {
+        proper[i] = temp[i]
     }
 
-    var qVarTemp[2][100] = long_div(64, 4, 4, proper, p);
-    for (var i = 0; i < 3; i++) {
+    // long_div(n, k, m, a, b) spec:
+    // n bits per register
+    // a has k + m registers
+    // b has k registers
+    // out[0] has length m + 1 -- quotient
+    // out[1] has length k -- remainder
+    // implements algorithm of https://people.eecs.berkeley.edu/~fateman/282/F%20Wright%20notes/week4.pdf
+    // b[k-1] must be nonzero!
+    var qVarTemp[2][100] = long_div(32, 8, 8, proper, p);
+    for (var i = 0; i < 7; i++) {
         q[i] <-- qVarTemp[0][i];
     }
 
-    // we need to constrain that q is in proper (3x64) representation
-    component qRangeChecks[3];
-    for (var i = 0; i < 3; i++) {
-        qRangeChecks[i] = Num2Bits(64);
+    // we need to constrain that q is in proper (7x32) representation
+    component qRangeChecks[7];
+    for (var i = 0; i < 7; i++) {
+        qRangeChecks[i] = Num2Bits(32);
         qRangeChecks[i].in <== q[i];
     }
 
     // now we compute a representation qpProd = q * p
     signal qpProd[6];
-    component qpProdComp = BigMultNoCarry(64, 64, 64, 3, 4);
-    for (var i = 0; i < 3; i++) {
+
+    // a and b have n-bit registers
+    // a has ka registers, each with NONNEGATIVE ma-bit values (ma can be > n)
+    // b has kb registers, each with NONNEGATIVE mb-bit values (mb can be > n)
+    // out has ka + kb - 1 registers, each with (ma + mb + ceil(log(max(ka, kb))))-bit values
+    // template BigMultNoCarry(n, ma, mb, ka, kb)
+    component qpProdComp = BigMultNoCarry(32, 32, 32, 7, 8);
+    for (var i = 0; i < 7; i++) {
         qpProdComp.a[i] <== q[i];
     }
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < 8; i++) {
         qpProdComp.b[i] <== p[i];
     }
-    for (var i = 0; i < 6; i++) {
-        qpProd[i] <== qpProdComp.out[i]; // 130 bits
+    for (var i = 0; i < 14; i++) {
+        qpProd[i] <== qpProdComp.out[i]; // 67 bits
     }
 
     // finally, check that qpProd == reduced
-    component zeroCheck = CheckCarryToZero(64, m + 46, 6);
-    for (var i = 0; i < 6; i++) {
-        if (i < 4) { // reduced only has 4 registers
-            zeroCheck.in[i] <== qpProd[i] - reduced[i]; // (m + 45) + 1 bits
+
+    // CheckCarryToZero(n, m, k) spec:
+    // in[i] contains values in the range -2^(m-1) to 2^(m-1)
+    // constrain that in[] as a big integer is zero
+    // each limbs is n bits
+    component zeroCheck = CheckCarryToZero(32, m + 40, 6);
+    for (var i = 0; i < 14; i++) {
+        if (i < 8) { // reduced only has 8 registers
+            zeroCheck.in[i] <== qpProd[i] - reduced[i]; // (m + 39) + 1 bits
         } else {
             zeroCheck.in[i] <== qpProd[i];
         }

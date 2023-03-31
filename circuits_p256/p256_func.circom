@@ -77,7 +77,7 @@ function get_B(n,k) {
 
 //done
 function get_p256_prime(n, k) {
-     assert((n == 86 && k == 3) || (n == 64 && k == 4));
+     assert((n == 86 && k == 3) || (n == 64 && k == 4) || (n == 32 && k == 8));
     
     // done
      var ret[100];
@@ -93,6 +93,17 @@ function get_p256_prime(n, k) {
          ret[1] = 4294967295;
          ret[2] = 0;
          ret[3] = 18446744069414584321;
+     }
+
+     if (n=32 && k==8) {
+         ret[0] = 4294967295;
+         ret[1] = 4294967295;
+         ret[2] = 4294967295;
+         ret[3] = 0;
+         ret[4] = 0;
+         ret[5] = 0;
+         ret[6] = 1;
+         ret[7] = 4294967295;
      }
      return ret;
 }
