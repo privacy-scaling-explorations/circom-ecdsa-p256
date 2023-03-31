@@ -15,7 +15,7 @@ parameters = {
 def get_all_parameters_long():
     return_string = ""
 
-    nk_pairs = [(86, 3), (64, 4)]
+    nk_pairs = [(86, 3), (64, 4), (32, 8)]
     for (n, k) in nk_pairs:
         return_string += "(n, k) = " + str((n, k)) + "\n"
         for param in parameters:
