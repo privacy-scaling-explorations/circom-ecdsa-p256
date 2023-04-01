@@ -3,7 +3,9 @@
 import path = require('path');
 
 import { expect, assert } from 'chai';
-import { getPublicKey, Point } from '@noble/secp256k1';
+// import { getPublicKey, Point } from '@noble/secp256k1';
+import { P256 } from '@noble/curves/p256';
+import { ProjConstructor, ProjPointType } from '@noble/curves/abstract/weierstrass';
 const circom_tester = require('circom_tester');
 const wasm_tester = circom_tester.wasm;
 
@@ -29,13 +31,15 @@ function bigint_to_array(n: number, k: number, x: bigint) {
   return ret;
 }
 
-describe('Secp256k1AddUnequal', function () {
+describe.only('P256AddUnequal', function () {
   this.timeout(1000 * 1000);
 
   // runs circom compilation
   let circuit: any;
   before(async function () {
-    circuit = await wasm_tester(path.join(__dirname, 'circuits', 'test_secp256k1_add.circom'));
+    circuit = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_p256_add.circom'));
+
+    console.log('circuit built');
   });
 
   // pub0x, pub0y, pub1x, pub0y, sumx, sumy
@@ -49,15 +53,17 @@ describe('Secp256k1AddUnequal', function () {
     90388020393783788847120091912026443124559466591761394939671630294477859800601n,
     110977009687373213104962226057480551605828725303063265716157300460694423838923n,
   ];
-  var pubkeys: Array<Point> = [];
+  var pubkeys: Array<ProjPointType<bigint>> = [];
   for (var idx = 0; idx < 4; idx++) {
-    var pubkey: Point = Point.fromPrivateKey(privkeys[idx]);
+    var pubkey = P256.ProjectivePoint.fromPrivateKey(privkeys[idx]);
+    // console.log(pubkey);
     pubkeys.push(pubkey);
   }
 
+  // summing all possible pairs of pubkeys
   for (var idx = 0; idx < 4; idx++) {
     for (var idx2 = idx + 1; idx2 < 4; idx2++) {
-      var sum: Point = pubkeys[idx].add(pubkeys[idx2]);
+      var sum: ProjPointType<bigint> = pubkeys[idx].add(pubkeys[idx2]);
       test_cases.push([
         pubkeys[idx].x,
         pubkeys[idx].y,
@@ -69,7 +75,7 @@ describe('Secp256k1AddUnequal', function () {
     }
   }
 
-  var test_secp256k1_add_instance = function (
+  var test_p256_add_instance = function (
     test_case: [bigint, bigint, bigint, bigint, bigint, bigint]
   ) {
     let pub0x = test_case[0];
@@ -100,10 +106,13 @@ describe('Secp256k1AddUnequal', function () {
         ' sumy: ' +
         sumy,
       async function () {
+        console.log('begin async func');
         let witness = await circuit.calculateWitness({
           a: [pub0x_array, pub0y_array],
           b: [pub1x_array, pub1y_array],
         });
+
+        console.log('witnesses caclulated');
         expect(witness[1]).to.equal(sumx_array[0]);
         expect(witness[2]).to.equal(sumx_array[1]);
         expect(witness[3]).to.equal(sumx_array[2]);
@@ -112,21 +121,25 @@ describe('Secp256k1AddUnequal', function () {
         expect(witness[6]).to.equal(sumy_array[1]);
         expect(witness[7]).to.equal(sumy_array[2]);
         expect(witness[8]).to.equal(sumy_array[3]);
+
+        console.log('witnesses equal');
         await circuit.checkConstraints(witness);
+
+        console.log('constraints correct');
       }
     );
   };
 
-  test_cases.forEach(test_secp256k1_add_instance);
+  test_cases.forEach(test_p256_add_instance);
 });
 
-describe('Secp256k1Double', function () {
+describe('P256Double', function () {
   this.timeout(1000 * 1000);
 
   // runs circom compilation
   let circuit: any;
   before(async function () {
-    circuit = await wasm_tester(path.join(__dirname, 'circuits', 'test_secp256k1_double.circom'));
+    circuit = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_p256_double.circom'));
   });
 
   // pubx, puby, doublex, doubley
@@ -139,18 +152,18 @@ describe('Secp256k1Double', function () {
     90388020393783788847120091912026443124559466591761394939671630294477859800601n,
     110977009687373213104962226057480551605828725303063265716157300460694423838923n,
   ];
-  var pubkeys: Array<Point> = [];
+  var pubkeys: Array<ProjPointType<bigint>> = [];
   for (var idx = 0; idx < 4; idx++) {
-    var pubkey: Point = Point.fromPrivateKey(privkeys[idx]);
+    var pubkey: ProjPointType<bigint> = P256.ProjectivePoint.fromPrivateKey(privkeys[idx]);
     pubkeys.push(pubkey);
   }
 
   for (var idx = 0; idx < 4; idx++) {
-    var double: Point = pubkeys[idx].add(pubkeys[idx]);
+    var double: ProjPointType<bigint> = pubkeys[idx].add(pubkeys[idx]);
     test_cases.push([pubkeys[idx].x, pubkeys[idx].y, double.x, double.y]);
   }
 
-  var test_secp256k1_double_instance = function (test_case: [bigint, bigint, bigint, bigint]) {
+  var test_p256_double_instance = function (test_case: [bigint, bigint, bigint, bigint]) {
     let pubx = test_case[0];
     let puby = test_case[1];
     let doublex = test_case[2];
@@ -178,17 +191,17 @@ describe('Secp256k1Double', function () {
     );
   };
 
-  test_cases.forEach(test_secp256k1_double_instance);
+  test_cases.forEach(test_p256_double_instance);
 });
 
-describe('Secp256k1ScalarMult', function () {
+describe('P256ScalarMult', function () {
   this.timeout(1000 * 1000);
 
   // runs circom compilation
   let circuit: any;
   before(async function () {
     circuit = await wasm_tester(
-      path.join(__dirname, 'circuits', 'test_secp256k1_scalarmult.circom')
+      path.join(__dirname, 'circuits_p256', 'test_p256_scalarmult.circom')
     );
   });
 
@@ -209,21 +222,19 @@ describe('Secp256k1ScalarMult', function () {
     110598305201199016801761605786356726057447763277828986929716844671829352701135n,
     89529513800538853223820080909500512684436497357931942181483678921439822888771n,
   ];
-  var pubkeys: Array<Point> = [];
+  var pubkeys: Array<ProjPointType<bigint>> = [];
   for (var idx = 0; idx < 4; idx++) {
-    var pubkey: Point = Point.fromPrivateKey(privkeys[idx]);
+    var pubkey: ProjPointType<bigint> = P256.ProjectivePoint.fromPrivateKey(privkeys[idx]);
     pubkeys.push(pubkey);
   }
 
   for (var idx = 0; idx < 4; idx++) {
     var scalar: bigint = scalars[idx];
-    var scalar_point: Point = pubkeys[idx].multiply(scalar);
+    var scalar_point: ProjPointType<bigint> = pubkeys[idx].multiply(scalar);
     test_cases.push([scalar, pubkeys[idx].x, pubkeys[idx].y, scalar_point.x, scalar_point.y]);
   }
 
-  var test_secp256k1_scalar_instance = function (
-    test_case: [bigint, bigint, bigint, bigint, bigint]
-  ) {
+  var test_p256_scalar_instance = function (test_case: [bigint, bigint, bigint, bigint, bigint]) {
     let scalar = test_case[0];
     let pubx = test_case[1];
     let puby = test_case[2];
@@ -265,7 +276,7 @@ describe('Secp256k1ScalarMult', function () {
     );
   };
 
-  test_cases.forEach(test_secp256k1_scalar_instance);
+  test_cases.forEach(test_p256_scalar_instance);
 });
 
 // TODO: figure out some way to test that if point is not on curve, pf gen should fail
@@ -275,7 +286,7 @@ describe('P256PointOnCurve', function () {
   // runs circom compilation
   let circuit: any;
   before(async function () {
-    circuit = await wasm_tester(path.join(__dirname, 'circuits', 'test_secp256k1_poc.circom'));
+    circuit = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_p256_poc.circom'));
   });
 
   // x, y, on/off
@@ -297,7 +308,7 @@ describe('P256PointOnCurve', function () {
     false,
   ]);
 
-  var test_secp256k1_poc_instance = function (test_case: [bigint, bigint, boolean]) {
+  var test_p256_poc_instance = function (test_case: [bigint, bigint, boolean]) {
     let x = test_case[0];
     let y = test_case[1];
     let on_curve = test_case[2];
@@ -329,5 +340,5 @@ describe('P256PointOnCurve', function () {
     });
   };
 
-  test_cases.forEach(test_secp256k1_poc_instance);
+  test_cases.forEach(test_p256_poc_instance);
 });
