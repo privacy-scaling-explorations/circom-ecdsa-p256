@@ -81,6 +81,8 @@ template AddUnequalCubicConstraint() {
     for (var i = 0; i < 4; i++) y1y2Comp.a[i] <== y1[i];
     for (var i = 0; i < 4; i++) y1y2Comp.b[i] <== y2[i];
     for (var i = 0; i < 7; i++) y1y2[i] <== y1y2Comp.out[i];
+
+    log(111);
  
     component zeroCheck = CheckCubicModPIsZero(200); // 200 bits per register
     for (var i = 0; i < 10; i++) {
@@ -144,6 +146,8 @@ template P256PointOnLine() {
     for (var i = 0; i < 4; i++) x1y2Comp.a[i] <== x1[i];
     for (var i = 0; i < 4; i++) x1y2Comp.b[i] <== y2[i];
     for (var i = 0; i < 7; i++) x1y2[i] <== x1y2Comp.out[i]; // 130 bits
+
+    // log(239587);
     
     component zeroCheck = CheckQuadraticModPIsZero(132);
     for (var i = 0; i < 7; i++) {
@@ -185,7 +189,9 @@ template P256PointOnTangent() {
 
     // done
     // next, we compute representations of ax3, ax1
-    signal A[4] = get_A(64, 4);
+    signal A[4];
+    var tmpA[4] = get_A(64, 4);
+    for (var i = 0; i < 4; i++) A[i] <== tmpA[i];
     
     signal Ax1[7];
     component Ax1Comp = BigMultNoCarry(64, 64, 64, 4, 4);
@@ -228,8 +234,13 @@ template P256PointOnCurve() {
     for (var i = 0; i < 7; i++) y2[i] <== y2Comp.a2[i];
 
     // next, we compute representations of Ax and B.
-    signal A[4] = get_A(64, 4);
-    signal B[4] = get_B(64, 4);
+    signal A[4];
+    var tmpA[4] = get_A(64, 4);
+    for (var i = 0; i < 4; i++) A[i] <== tmpA[i];
+
+    signal B[4];
+    var tmpB[4] = get_B(64, 4);
+    for (var i = 0; i < 4; i++) B[i] <== tmpB[i];
     
     signal Ax[7];
     component AxComp = BigMultNoCarry(64, 64, 64, 4, 4);
@@ -270,6 +281,9 @@ template P256AddUnequal(n, k) {
         out[1][i] <-- tmp[1][i];
     }
 
+    log(1);
+
+    // sometimes fail here
     component cubic_constraint = AddUnequalCubicConstraint();
     for(var i = 0; i < k; i++){
         cubic_constraint.x1[i] <== x1[i];
@@ -279,6 +293,8 @@ template P256AddUnequal(n, k) {
         cubic_constraint.x3[i] <== out[0][i];
         cubic_constraint.y3[i] <== out[1][i];
     }
+
+    // log(1);
     
     component point_on_line = P256PointOnLine();
     for(var i = 0; i < k; i++){
@@ -290,12 +306,18 @@ template P256AddUnequal(n, k) {
         point_on_line.y3[i] <== out[1][i];
     }
 
+    log(2);
+
+
     component x_check_in_range = CheckInRangeP256();
     component y_check_in_range = CheckInRangeP256();
     for(var i = 0; i < k; i++){
         x_check_in_range.in[i] <== out[0][i];
         y_check_in_range.in[i] <== out[1][i];
     }
+
+    log(3);
+
 }
 
 // done

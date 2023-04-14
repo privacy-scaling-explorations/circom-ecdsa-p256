@@ -25,7 +25,7 @@ template P256PrimeReduce10Registers() {
                         [4294967294, 4294967294, 4294967295, 2, 2, 0, 1, 4294967294],
                         [4294967295, 4294967294, 4294967294, 4294967295, 0, 2, 3, 0],
                         [3, 0, 4294967295, 4294967291, 4294967294, 4294967295, 4294967293, 4],
-                        [2, 5, 3, 4294967294, 4294967289, 4294967291, 4294967292, 4294967292]]
+                        [2, 5, 3, 4294967294, 4294967289, 4294967291, 4294967292, 4294967292]];
 
     var tmp[8] = [0,0,0,0,0,0,0,0];
     for (var i=0; i<8; i++) {
@@ -49,13 +49,13 @@ template P256PrimeReduce10Registers() {
 template P256PrimeReduce7Registers() {
     signal input in[7];
 
-    var in_coeffs = [[1, 0, 0, 0], 
+    var in_coeffs[7][4] = [[1, 0, 0, 0], 
                     [0, 1, 0, 0], 
                     [0, 0, 1, 0], 
                     [0, 0, 0, 1], 
                     [1, 18446744069414584320, 18446744073709551615, 4294967294], 
                     [4294967295, 4294967297, 18446744069414584319, 18446744065119617024], 
-                    [18446744069414584318, 12884901887, 2, 18446744065119617025]]
+                    [18446744069414584318, 12884901887, 2, 18446744065119617025]];
 
     var tmp[4] = [0,0,0,0];
     for (var i=0; i<4; i++) {
@@ -81,7 +81,7 @@ template CheckInRangeP256 () {
     firstPlaceLessThan.in[0] <== in[3];
     firstPlaceLessThan.in[1] <== 18446744069414584321;
 
-    component firstPlaceEqual = IsEqual()
+    component firstPlaceEqual = IsEqual();
     firstPlaceEqual.in[0] <== in[3];
     firstPlaceEqual.in[1] <== 18446744069414584321;
 
@@ -89,7 +89,7 @@ template CheckInRangeP256 () {
     secondPlaceLessThan.in[0] <== in[2];
     secondPlaceLessThan.in[1] <== 0;
 
-    component secondPlaceEqual = IsEqual()
+    component secondPlaceEqual = IsEqual();
     secondPlaceEqual.in[0] <== in[2];
     secondPlaceEqual.in[1] <== 0;
 
@@ -97,7 +97,7 @@ template CheckInRangeP256 () {
     thirdPlaceLessThan.in[0] <== in[1];
     thirdPlaceLessThan.in[1] <== 4294967295;
 
-    component thirdPlaceEqual = IsEqual()
+    component thirdPlaceEqual = IsEqual();
     thirdPlaceEqual.in[0] <== in[1];
     thirdPlaceEqual.in[1] <== 4294967295;
 
@@ -105,24 +105,38 @@ template CheckInRangeP256 () {
     fourthPlaceLessThan.in[0] <== in[0];
     fourthPlaceLessThan.in[1] <== 18446744073709551615;
 
-    component fourthPlaceEqual = IsEqual()
+    component fourthPlaceEqual = IsEqual();
     fourthPlaceEqual.in[0] <== in[0];
     fourthPlaceEqual.in[1] <== 18446744073709551615;
 
-    signal l1 <== 1 - firstPlaceLessThan.out;
-    signal e1 <== 1 - firstPlaceEqual.out;
-    signal l2 <== 1 - secondPlaceLessThan.out;
-    signal e2 <== 1 - secondPlaceEqual.out;
-    signal l3 <== 1 - thirdPlaceLessThan.out;
-    signal e3 <== 1 - thirdPlaceEqual.out;
-    signal l4 <== 1 - fourthPlaceLessThan.out;
-    signal e4 <== 1 - fourthPlaceEqual.out;
+    signal l1;
+    l1 <== 1 - firstPlaceLessThan.out;
+    signal e1;
+    e1 <== 1 - firstPlaceEqual.out;
+    signal l2;
+    l2 <== 1 - secondPlaceLessThan.out;
+    signal e2;
+    e2 <== 1 - secondPlaceEqual.out;
+    signal l3;
+    l3 <== 1 - thirdPlaceLessThan.out;
+    signal e3;
+    e3 <== 1 - thirdPlaceEqual.out;
+    signal l4;
+    l4 <== 1 - fourthPlaceLessThan.out;
+    signal e4;
+    e4 <== 1 - fourthPlaceEqual.out;
 
     // d1d2d3d4 < P <=> (d1 less) OR 
     //                  (d1 equal and d2 less) OR
     //                  (d1 equal and d2 equal and d3 less) OR 
     //                  (d1 equal and d2 equal and d3 equal and d4 less)
-    (l1 * (e1 + l2) * (e1 + e2 + l3) * (e1 + e2 + e3 + l4)) === 0;
+
+    signal tmp1;
+    tmp1 <== 1 * (e1 + l2);
+    signal tmp2;
+    tmp2 <== (e1 + e2 + l3) * (e1 + e2 + e3 + l4);
+
+    tmp1 * tmp2 === 0;
 
 }
 
@@ -136,9 +150,9 @@ template CheckCubicModPIsZero(m) {
 
     // the p256 field size in (32,8)-rep
     signal p[8];
-    var p_32_8[8] = get_p256_prime(32, 8);
+    var p_32_8[100] = get_p256_prime(32, 8);
     for (var i=0; i<8; i++) {
-        p[i] <== p_32_8[i]
+        p[i] <== p_32_8[i];
     }
 
     // now, we compute a positive number congruent to `in` expressible in *8* overflowed registers.
@@ -159,7 +173,7 @@ template CheckCubicModPIsZero(m) {
     }
     
     // also compute P as (32, 8) rep to add - multiple should still be the same since value stays same
-    signal multipleOfP[4];
+    signal multipleOfP[8];
     for (var i = 0; i < 8; i++) {
         multipleOfP[i] <== p[i] * (1 << (m+6)); // m + 6 + 32 = m+38 bits
     }
@@ -185,10 +199,17 @@ template CheckCubicModPIsZero(m) {
     // + 1 since the carries from previous registers could push you over
     // TODO: need to check if largest register of proper is negative
     var temp[100] = getProperRepresentation(m + 39, 32, 8, reduced);
+
     var proper[16];
     for (var i = 0; i<16; i++) {
-        proper[i] = temp[i]
+        proper[i] = temp[i];
     }
+
+    for (var i = 0; i<16; i++) {
+        log(proper[i]);
+    }
+
+        log(4444444);
 
     // long_div(n, k, m, a, b) spec:
     // n bits per register
@@ -203,6 +224,16 @@ template CheckCubicModPIsZero(m) {
         q[i] <-- qVarTemp[0][i];
     }
 
+    // for (var i = 0; i<7; i++) {
+    //    log(q[i]);
+    // }
+
+    // log(55555555);
+
+
+    // log(1111);
+
+
     // we need to constrain that q is in proper (7x32) representation
     component qRangeChecks[7];
     for (var i = 0; i < 7; i++) {
@@ -210,14 +241,16 @@ template CheckCubicModPIsZero(m) {
         qRangeChecks[i].in <== q[i];
     }
 
-    // now we compute a representation qpProd = q * p
-    signal qpProd[6];
+    // log(1111);
 
+    // now we compute a representation qpProd = q * p
+    signal qpProd[14];
+
+    // template BigMultNoCarry(n, ma, mb, ka, kb) spec:
     // a and b have n-bit registers
     // a has ka registers, each with NONNEGATIVE ma-bit values (ma can be > n)
     // b has kb registers, each with NONNEGATIVE mb-bit values (mb can be > n)
     // out has ka + kb - 1 registers, each with (ma + mb + ceil(log(max(ka, kb))))-bit values
-    // template BigMultNoCarry(n, ma, mb, ka, kb)
     component qpProdComp = BigMultNoCarry(32, 32, 32, 7, 8);
     for (var i = 0; i < 7; i++) {
         qpProdComp.a[i] <== q[i];
@@ -229,13 +262,26 @@ template CheckCubicModPIsZero(m) {
         qpProd[i] <== qpProdComp.out[i]; // 67 bits
     }
 
+        log(1111);
+
+    for (var i=0; i<14; i++) {
+        log(qpProd[i]);
+    }
+
+        log(3333333);
+
+    for (var i=0; i<8; i++) {
+        log(reduced[i]);
+    }
+
+
     // finally, check that qpProd == reduced
 
     // CheckCarryToZero(n, m, k) spec:
     // in[i] contains values in the range -2^(m-1) to 2^(m-1)
     // constrain that in[] as a big integer is zero
     // each limbs is n bits
-    component zeroCheck = CheckCarryToZero(32, m + 40, 6);
+    component zeroCheck = CheckCarryToZero(32, m + 40, 14);
     for (var i = 0; i < 14; i++) {
         if (i < 8) { // reduced only has 8 registers
             zeroCheck.in[i] <== qpProd[i] - reduced[i]; // (m + 39) + 1 bits
@@ -243,6 +289,7 @@ template CheckCubicModPIsZero(m) {
             zeroCheck.in[i] <== qpProd[i];
         }
     }
+
 }
 
 // DONE
