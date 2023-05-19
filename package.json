@@ -15,6 +15,7 @@
   "author": "0xPARC <hello@0xparc.org>",
   "license": "ISC",
   "dependencies": {
+    "@noble/curves": "^0.9.1",
     "circomlib": "^2.0.2",
     "ethers": "^5.5.2",
     "snarkjs": "^0.4.10"

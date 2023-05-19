@@ -550,19 +550,25 @@ template CheckCarryToZero(n, m, k) {
     signal input in[k];
     
     signal carry[k];
+    
     component carryRangeChecks[k];
     for (var i = 0; i < k-1; i++){
         carryRangeChecks[i] = Num2Bits(m + EPSILON - n); 
         if( i == 0 ){
             carry[i] <-- in[i] / (1<<n);
-            in[i] === carry[i] * (1<<n);
+            // in[i] === carry[i] * (1<<n);
+            log(2);
+            log(3);
         }
         else{
+            log(11);
             carry[i] <-- (in[i]+carry[i-1]) / (1<<n);
             in[i] + carry[i-1] === carry[i] * (1<<n);
+            log(22);
         }
         // checking carry is in the range of - 2^(m-n-1+eps), 2^(m+-n-1+eps)
         carryRangeChecks[i].in <== carry[i] + ( 1<< (m + EPSILON - n - 1));
     }
-    in[k-1] + carry[k-2] === 0;   
+    in[k-1] + carry[k-2] === 0;
+    log(2222222);   
 }

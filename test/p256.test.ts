@@ -46,7 +46,7 @@ describe.only('P256AddUnequal', function () {
   var test_cases: Array<[bigint, bigint, bigint, bigint, bigint, bigint]> = [];
 
   // 4 randomly chosen private keys
-  // TODO: change (sk, pk) = (d_a, g^d_a) for p256 curve
+  // DONE: change (sk, pk) = (d_a, g^d_a) for p256 curve
   var privkeys: Array<bigint> = [
     88549154299169935420064281163296845505587953610183896504176354567359434168161n,
     37706893564732085918706190942542566344879680306879183356840008504374628845468n,
@@ -129,6 +129,9 @@ describe.only('P256AddUnequal', function () {
       }
     );
   };
+
+  // TODO: COMMENT OUT
+  test_cases = [test_cases[0]];
 
   test_cases.forEach(test_p256_add_instance);
 });

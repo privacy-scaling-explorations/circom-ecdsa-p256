@@ -82,8 +82,13 @@ template AddUnequalCubicConstraint() {
     for (var i = 0; i < 4; i++) y1y2Comp.b[i] <== y2[i];
     for (var i = 0; i < 7; i++) y1y2[i] <== y1y2Comp.out[i];
 
-    log(111);
+    for (var i=0; i<7; i++) {
+        log(y1y2[i]);
+    }
+    
+    log(1010);
  
+    // fail here??
     component zeroCheck = CheckCubicModPIsZero(200); // 200 bits per register
     for (var i = 0; i < 10; i++) {
         if (i < 7) {
@@ -92,6 +97,8 @@ template AddUnequalCubicConstraint() {
             zeroCheck.in[i] <== x13[i] + x23[i] - x12x2[i] - x1x22[i] + x22x3[i] + x12x3[i] - 2 * x1x2x3[i];
         }
     }
+
+    log(1111);
 }
 
 // done
@@ -283,7 +290,7 @@ template P256AddUnequal(n, k) {
 
     log(1);
 
-    // sometimes fail here
+    // fail here
     component cubic_constraint = AddUnequalCubicConstraint();
     for(var i = 0; i < k; i++){
         cubic_constraint.x1[i] <== x1[i];
@@ -294,7 +301,7 @@ template P256AddUnequal(n, k) {
         cubic_constraint.y3[i] <== out[1][i];
     }
 
-    // log(1);
+    log(2);
     
     component point_on_line = P256PointOnLine();
     for(var i = 0; i < k; i++){
@@ -306,7 +313,7 @@ template P256AddUnequal(n, k) {
         point_on_line.y3[i] <== out[1][i];
     }
 
-    log(2);
+    log(3);
 
 
     component x_check_in_range = CheckInRangeP256();
@@ -316,7 +323,7 @@ template P256AddUnequal(n, k) {
         y_check_in_range.in[i] <== out[1][i];
     }
 
-    log(3);
+    log(4);
 
 }
 
