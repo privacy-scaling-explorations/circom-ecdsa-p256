@@ -1,6 +1,11 @@
 build/
 node_modules/
-pot*.ptau
+*.ptau
+*.pkey
+circuits_p256/powersOfTau28_hez_final_21.ptau
+circuits_p256/powersOfTau28_hez_final_22.ptau
+circuits_p256/.build
+scripts/verify/.build/
 __pycache__
 .DS_Store
 scratch/

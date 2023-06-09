@@ -30,7 +30,9 @@ describe("BigMod n = 2, k = 2 exhaustive", function() {
     // runs circom compilation
     let circuit: any;
     before(async function () {
+        console.log("Compiling...");
         circuit = await wasm_tester(path.join(__dirname, "circuits", "test_bigmod_22.circom"));
+        console.log("Compiled");
     });
 
     // a, b, div, mod

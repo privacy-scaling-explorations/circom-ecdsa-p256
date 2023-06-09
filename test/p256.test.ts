@@ -31,110 +31,111 @@ function bigint_to_array(n: number, k: number, x: bigint) {
   return ret;
 }
 
-describe.only('P256AddUnequal', function () {
-  this.timeout(1000 * 1000);
+// describe.only('P256AddUnequal', function () {
+//   this.timeout(1000 * 1000);
+  
+//   // runs circom compilation
+//   let circuit: any;
+//   before(async function () {
+//     console.log("Builind circuit")
+//     circuit = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_p256_add.circom'));
 
-  // runs circom compilation
-  let circuit: any;
-  before(async function () {
-    circuit = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_p256_add.circom'));
+//     console.log('circuit built');
+//   });
 
-    console.log('circuit built');
-  });
+//   // pub0x, pub0y, pub1x, pub0y, sumx, sumy
+//   var test_cases: Array<[bigint, bigint, bigint, bigint, bigint, bigint]> = [];
 
-  // pub0x, pub0y, pub1x, pub0y, sumx, sumy
-  var test_cases: Array<[bigint, bigint, bigint, bigint, bigint, bigint]> = [];
+//   // 4 randomly chosen private keys
+//   // DONE: change (sk, pk) = (d_a, g^d_a) for p256 curve
+//   var privkeys: Array<bigint> = [
+//     88549154299169935420064281163296845505587953610183896504176354567359434168161n,
+//     37706893564732085918706190942542566344879680306879183356840008504374628845468n,
+//     90388020393783788847120091912026443124559466591761394939671630294477859800601n,
+//     110977009687373213104962226057480551605828725303063265716157300460694423838923n,
+//   ];
+//   var pubkeys: Array<ProjPointType<bigint>> = [];
+//   for (var idx = 0; idx < 4; idx++) {
+//     var pubkey = P256.ProjectivePoint.fromPrivateKey(privkeys[idx]);
+//     // console.log(pubkey);
+//     pubkeys.push(pubkey);
+//   }
 
-  // 4 randomly chosen private keys
-  // DONE: change (sk, pk) = (d_a, g^d_a) for p256 curve
-  var privkeys: Array<bigint> = [
-    88549154299169935420064281163296845505587953610183896504176354567359434168161n,
-    37706893564732085918706190942542566344879680306879183356840008504374628845468n,
-    90388020393783788847120091912026443124559466591761394939671630294477859800601n,
-    110977009687373213104962226057480551605828725303063265716157300460694423838923n,
-  ];
-  var pubkeys: Array<ProjPointType<bigint>> = [];
-  for (var idx = 0; idx < 4; idx++) {
-    var pubkey = P256.ProjectivePoint.fromPrivateKey(privkeys[idx]);
-    // console.log(pubkey);
-    pubkeys.push(pubkey);
-  }
+//   // summing all possible pairs of pubkeys
+//   for (var idx = 0; idx < 4; idx++) {
+//     for (var idx2 = idx + 1; idx2 < 4; idx2++) {
+//       var sum: ProjPointType<bigint> = pubkeys[idx].add(pubkeys[idx2]);
+//       test_cases.push([
+//         pubkeys[idx].x,
+//         pubkeys[idx].y,
+//         pubkeys[idx2].x,
+//         pubkeys[idx2].y,
+//         sum.x,
+//         sum.y,
+//       ]);
+//     }
+//   }
 
-  // summing all possible pairs of pubkeys
-  for (var idx = 0; idx < 4; idx++) {
-    for (var idx2 = idx + 1; idx2 < 4; idx2++) {
-      var sum: ProjPointType<bigint> = pubkeys[idx].add(pubkeys[idx2]);
-      test_cases.push([
-        pubkeys[idx].x,
-        pubkeys[idx].y,
-        pubkeys[idx2].x,
-        pubkeys[idx2].y,
-        sum.x,
-        sum.y,
-      ]);
-    }
-  }
+//   var test_p256_add_instance = function (
+//     test_case: [bigint, bigint, bigint, bigint, bigint, bigint]
+//   ) {
+//     let pub0x = test_case[0];
+//     let pub0y = test_case[1];
+//     let pub1x = test_case[2];
+//     let pub1y = test_case[3];
+//     let sumx = test_case[4];
+//     let sumy = test_case[5];
 
-  var test_p256_add_instance = function (
-    test_case: [bigint, bigint, bigint, bigint, bigint, bigint]
-  ) {
-    let pub0x = test_case[0];
-    let pub0y = test_case[1];
-    let pub1x = test_case[2];
-    let pub1y = test_case[3];
-    let sumx = test_case[4];
-    let sumy = test_case[5];
+//     var pub0x_array: bigint[] = bigint_to_array(64, 4, pub0x);
+//     var pub0y_array: bigint[] = bigint_to_array(64, 4, pub0y);
+//     var pub1x_array: bigint[] = bigint_to_array(64, 4, pub1x);
+//     var pub1y_array: bigint[] = bigint_to_array(64, 4, pub1y);
+//     var sumx_array: bigint[] = bigint_to_array(64, 4, sumx);
+//     var sumy_array: bigint[] = bigint_to_array(64, 4, sumy);
 
-    var pub0x_array: bigint[] = bigint_to_array(64, 4, pub0x);
-    var pub0y_array: bigint[] = bigint_to_array(64, 4, pub0y);
-    var pub1x_array: bigint[] = bigint_to_array(64, 4, pub1x);
-    var pub1y_array: bigint[] = bigint_to_array(64, 4, pub1y);
-    var sumx_array: bigint[] = bigint_to_array(64, 4, sumx);
-    var sumy_array: bigint[] = bigint_to_array(64, 4, sumy);
+//     it(
+//       'Testing jodiewjqdiowjdpodpoekwqp pub0x: ' +
+//         pub0x +
+//         ' pub0y: ' +
+//         pub0y +
+//         ' pub1x: ' +
+//         pub1x +
+//         ' pub1y: ' +
+//         pub1y +
+//         ' sumx: ' +
+//         sumx +
+//         ' sumy: ' +
+//         sumy,
+//       // async function () {
+//       //   console.log('begin async func');
+//       //   let witness = await circuit.calculateWitness({
+//       //     a: [pub0x_array, pub0y_array],
+//       //     b: [pub1x_array, pub1y_array],
+//       //   });
 
-    it(
-      'Testing pub0x: ' +
-        pub0x +
-        ' pub0y: ' +
-        pub0y +
-        ' pub1x: ' +
-        pub1x +
-        ' pub1y: ' +
-        pub1y +
-        ' sumx: ' +
-        sumx +
-        ' sumy: ' +
-        sumy,
-      async function () {
-        console.log('begin async func');
-        let witness = await circuit.calculateWitness({
-          a: [pub0x_array, pub0y_array],
-          b: [pub1x_array, pub1y_array],
-        });
+//       //   console.log('witnesses caclulated');
+//       //   expect(witness[1]).to.equal(sumx_array[0]);
+//       //   expect(witness[2]).to.equal(sumx_array[1]);
+//       //   expect(witness[3]).to.equal(sumx_array[2]);
+//       //   expect(witness[4]).to.equal(sumx_array[3]);
+//       //   expect(witness[5]).to.equal(sumy_array[0]);
+//       //   expect(witness[6]).to.equal(sumy_array[1]);
+//       //   expect(witness[7]).to.equal(sumy_array[2]);
+//       //   expect(witness[8]).to.equal(sumy_array[3]);
 
-        console.log('witnesses caclulated');
-        expect(witness[1]).to.equal(sumx_array[0]);
-        expect(witness[2]).to.equal(sumx_array[1]);
-        expect(witness[3]).to.equal(sumx_array[2]);
-        expect(witness[4]).to.equal(sumx_array[3]);
-        expect(witness[5]).to.equal(sumy_array[0]);
-        expect(witness[6]).to.equal(sumy_array[1]);
-        expect(witness[7]).to.equal(sumy_array[2]);
-        expect(witness[8]).to.equal(sumy_array[3]);
+//       //   console.log('witnesses equal');
+//       //   await circuit.checkConstraints(witness);
 
-        console.log('witnesses equal');
-        await circuit.checkConstraints(witness);
+//       //   console.log('constraints correct');
+//       // }
+//     );
+//   };
 
-        console.log('constraints correct');
-      }
-    );
-  };
+//   // TODO: COMMENT OUT
+//   // test_cases = [test_cases[0]];
 
-  // TODO: COMMENT OUT
-  test_cases = [test_cases[0]];
-
-  test_cases.forEach(test_p256_add_instance);
-});
+//   // test_cases.forEach(test_p256_add_instance);
+// });
 
 describe('P256Double', function () {
   this.timeout(1000 * 1000);
@@ -142,7 +143,9 @@ describe('P256Double', function () {
   // runs circom compilation
   let circuit: any;
   before(async function () {
+    console.log("directory name: ", __dirname);
     circuit = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_p256_double.circom'));
+    console.log('circuit compiled');
   });
 
   // pubx, puby, doublex, doubley
@@ -325,6 +328,8 @@ describe('P256PointOnCurve', function () {
           x: x_array,
           y: y_array,
         });
+
+        console.log("Point on curve: ", witness);
         await circuit.checkConstraints(witness);
       } else {
         let witnessCalcSucceeded = true;

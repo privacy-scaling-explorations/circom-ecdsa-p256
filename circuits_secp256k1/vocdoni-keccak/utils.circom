@@ -1,4 +1,4 @@
-pragma circom 2.0.2;
+pragma circom 2.1.5;
 
 include "../../node_modules/circomlib/circuits/gates.circom";
 include "../../node_modules/circomlib/circuits/sha256/xor3.circom";

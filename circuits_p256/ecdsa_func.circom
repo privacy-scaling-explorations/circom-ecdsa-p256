@@ -1,6 +1,6 @@
 // DONE FILE
 
-pragma circom 2.0.2;
+pragma circom 2.1.5;
 
 function get_g_pow_stride8_table(n, k) {
     assert(n == 64 && k == 4);

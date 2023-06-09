@@ -1,6 +1,6 @@
 // TODO FILE
 
-pragma circom 2.0.2;
+pragma circom 2.1.5;
 
 include "bigint_func.circom";
 include "p256_func.circom";
@@ -18,6 +18,7 @@ template P256PrimeReduce10Registers() {
 
     // PrimeReduce10Registers: 
     // TODO: remove hardcode
+    //DOUBT
     var in_coeffs[10][8] = [[1, 0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 1, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, 1, 0, 0, 0],
@@ -50,7 +51,7 @@ template P256PrimeReduce10Registers() {
 // so can directly reduce 2^(64i)*in[i] directly in 4 registers of 64 bits -> 64 bit overflow for 4 <= i <= 6
 template P256PrimeReduce7Registers() {
     signal input in[7];
-
+    //DOUBT
     var in_coeffs[7][4] = [[1, 0, 0, 0], 
                     [0, 1, 0, 0], 
                     [0, 0, 1, 0], 
@@ -78,7 +79,7 @@ template P256PrimeReduce7Registers() {
 // P = 18446744073709551615 * 2^0 + 4294967295 * 2^64 + 0 * 2^128 + 18446744069414584321 * 2^192
 template CheckInRangeP256 () {
     signal input in[4];
-
+    //DOUBT
     component firstPlaceLessThan = LessThan(64);
     firstPlaceLessThan.in[0] <== in[3];
     firstPlaceLessThan.in[1] <== 18446744069414584321;
