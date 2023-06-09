@@ -16,6 +16,9 @@ include "p256_func.circom";
 template P256PrimeReduce10Registers() {
     signal input in[10];
 
+    // raw number = in[0] + in[1]*(2^64)^1 + in[2]*(2^64)^2 +in[3]*(2^64)^3 ... + in[7]*(2^64)^7 + ...
+    // in[i]*(2^64)^i --> represent each of (2^64)^i (mod p) as an 8 digit (register) number in base 2^32, so that offsets to multiply in[i] by for each register at most 32 bits = small
+
     // PrimeReduce10Registers: 
     // TODO: remove hardcode
     var in_coeffs[10][8] = [[1, 0, 0, 0, 0, 0, 0, 0],
@@ -28,6 +31,8 @@ template P256PrimeReduce10Registers() {
                         [4294967295, 4294967294, 4294967294, 4294967295, 0, 2, 3, 0],
                         [3, 0, 4294967295, 4294967291, 4294967294, 4294967295, 4294967293, 4],
                         [2, 5, 3, 4294967294, 4294967289, 4294967291, 4294967292, 4294967292]];
+
+    
 
     var tmp[8] = [0,0,0,0,0,0,0,0];
     for (var i=0; i<8; i++) {
@@ -76,6 +81,7 @@ template P256PrimeReduce7Registers() {
 // check that in is in range [0, P-1]
 // want to look at P base 2^64 - as long as number is less than that, good (check ranges from largest to smallest digit)
 // P = 18446744073709551615 * 2^0 + 4294967295 * 2^64 + 0 * 2^128 + 18446744069414584321 * 2^192
+// TODO: remove hardcode
 template CheckInRangeP256 () {
     signal input in[4];
 
@@ -173,6 +179,9 @@ template CheckCubicModPIsZero(m) {
     // our intermediate result is z = p256reduce(in)
     // second, we add a big multiple of p to z, to ensure that our final result is positive. 
     // since the registers of z are m + 34 bits, its max abs value is 2^(m+34 + 224) + 2^(m+34 + 192) + 2^(m+34 + 160) + ...
+    //      < 2^(m+258)
+    // what if we just didn't reduce any registers? then
+    //      in < 2^(m + 64*9) + ... < 2^(m + 64*9)*10
     // so we add p * 2^(m+6) = (2^256-2^224 + eps) * 2^(m+6), which is a bit under 2^(m+262) and larger than |z| < 8 * 2^(m+34 + 224) = 2^(m+34 + 224 + 3) = 2^(m+261)
 
     signal reduced[8];
@@ -187,7 +196,7 @@ template CheckCubicModPIsZero(m) {
     // also compute P as (32, 8) rep to add - multiple should still be the same since value stays same
     signal multipleOfP[8];
     for (var i = 0; i < 8; i++) {
-        multipleOfP[i] <== p[i] * (1 << (m+7)); // m + 6 + 32 = m+38 bits
+        multipleOfP[i] <== p[i] * (1 << (m+6)); // m + 6 + 32 = m+38 bits
     }
 
     // reduced becomes (32, 8)
@@ -199,7 +208,7 @@ template CheckCubicModPIsZero(m) {
         log(reduced[i]);
     }
     
-    log(222);
+    log(333);
 
     // now we compute the quotient q, which serves as a witness. we can do simple bounding to show
     // q := reduced / P < (p256Reducer + multipleofP) / 2^255 < (2^(m+262) + 2^(m+261)) / 2^255 < 2^(m+8)
@@ -216,12 +225,15 @@ template CheckCubicModPIsZero(m) {
     // - 1 since the last register is included in the last ceil(m/n) array
     // + 1 since the carries from previous registers could push you over
     // TODO: need to check if largest register of proper is negative
-    var temp[100] = getProperRepresentation(m + 41, 32, 8, reduced); // TODO: switch back to m + 39
+    var temp[100] = getProperRepresentation(m + 39, 32, 8, reduced); // TODO: switch back to m + 39
 
     var proper[16];
     for (var i = 0; i<16; i++) {
         proper[i] = temp[i];
+        // log(proper[i]);
     }
+
+    log(999999999);
 
     // long_div(n, k, m, a, b) spec:
     // n bits per register
@@ -251,7 +263,7 @@ template CheckCubicModPIsZero(m) {
         qRangeChecks[i].in <== q[i];
     }
 
-    log(333);
+    log(444);
 
     // now we compute a representation qpProd = q * p
     signal qpProd[14];
@@ -282,10 +294,10 @@ template CheckCubicModPIsZero(m) {
     // }
 
 
-    log(444);
+    log(555);
 
     // finally, check that qpProd == reduced
-
+    // FAIL HERE
     // CheckCarryToZero(n, m, k) spec:
     // in[i] contains values in the range -2^(m-1) to 2^(m-1)
     // constrain that in[] as a big integer is zero
@@ -299,7 +311,7 @@ template CheckCubicModPIsZero(m) {
         }
     }
 
-    log(555);
+    log(666);
 
 }
 

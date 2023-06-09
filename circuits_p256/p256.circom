@@ -86,9 +86,9 @@ template AddUnequalCubicConstraint() {
         log(y1y2[i]);
     }
     
-    log(1010);
+    log(11);
  
-    // fail here??
+    // fail here
     component zeroCheck = CheckCubicModPIsZero(200); // 200 bits per register
     for (var i = 0; i < 10; i++) {
         if (i < 7) {
@@ -98,7 +98,7 @@ template AddUnequalCubicConstraint() {
         }
     }
 
-    log(1111);
+    log(22);
 }
 
 // done

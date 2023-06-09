@@ -62,6 +62,8 @@ function splitOverflowedRegister(m, n, in) {
 // all others are positive
 // - 1 since the last register is included in the last ceil(m/n) array
 // + 1 since the carries from previous registers could push you over
+
+// TODO: double check this circuit...
 function getProperRepresentation(m, n, k, in) {
     var ceilMN = 0; // ceil(m/n)
     if (m % n == 0) {
