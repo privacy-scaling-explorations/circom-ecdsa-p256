@@ -1,6 +1,6 @@
 // DONE FILE
 
-pragma circom 2.0.2;
+pragma circom 2.1.5;
 
 function isNegative(x) {
     // half babyjubjub field size
@@ -192,7 +192,7 @@ function long_scalar_mult(n, k, a, b) {
 function long_div(n, k, m, a, b){
     var out[2][100];
 
-    var remainder[200];
+    var remainder[100]; // TODO: change back to remainder[200] if doens't work
     for (var i = 0; i < m + k; i++) {
         remainder[i] = a[i];
     }
@@ -266,9 +266,9 @@ function short_div(n, k, a, b) {
    var scale = (1 << n) \ (1 + b[k - 1]);
 
    // k + 2 registers now
-   var norm_a[200] = long_scalar_mult(n, k + 1, scale, a);
+   var norm_a[100] = long_scalar_mult(n, k + 1, scale, a); // TODO: change back to norm_a[200], norm_b[200] if doesn't work
    // k + 1 registers now
-   var norm_b[200] = long_scalar_mult(n, k, scale, b);
+   var norm_b[100] = long_scalar_mult(n, k, scale, b);
 
    var ret;
    if (norm_b[k] != 0) {

@@ -34,7 +34,7 @@ function get_short(input: Array<number>, n: number) {
   return result;
 }
 
-describe('long division', function () {
+describe('get proper', function () {
   this.timeout(1000 * 1000);
 
   // runs circom compilation

@@ -1,6 +1,6 @@
 // TODO FILE
 
-pragma circom 2.0.2;
+pragma circom 2.1.5;
 
 include "bigint_func.circom";
 include "p256_func.circom";
@@ -225,12 +225,12 @@ template CheckCubicModPIsZero(m) {
     // - 1 since the last register is included in the last ceil(m/n) array
     // + 1 since the carries from previous registers could push you over
     // TODO: need to check if largest register of proper is negative
-    var temp[100] = getProperRepresentation(m + 39, 32, 8, reduced); // TODO: switch back to m + 39
+    var temp[100] = getProperRepresentation(m + 39, 32, 8, reduced); // TODO: switch back to m + 39 // SOME ERROR HERE
 
     var proper[16];
     for (var i = 0; i<16; i++) {
         proper[i] = temp[i];
-        // log(proper[i]);
+        log(proper[i]);
     }
 
     log(999999999);
@@ -266,7 +266,7 @@ template CheckCubicModPIsZero(m) {
     log(444);
 
     // now we compute a representation qpProd = q * p
-    signal qpProd[14];
+    signal qpProd[14]; // TODO: change back to [14]
 
     // template BigMultNoCarry(n, ma, mb, ka, kb) spec:
     // a and b have n-bit registers
@@ -297,7 +297,6 @@ template CheckCubicModPIsZero(m) {
     log(555);
 
     // finally, check that qpProd == reduced
-    // FAIL HERE
     // CheckCarryToZero(n, m, k) spec:
     // in[i] contains values in the range -2^(m-1) to 2^(m-1)
     // constrain that in[] as a big integer is zero

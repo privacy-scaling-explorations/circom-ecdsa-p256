@@ -1,6 +1,6 @@
 // DONE FILE
 
-pragma circom 2.0.2;
+pragma circom 2.1.5;
 
 include "bigint.circom";
 

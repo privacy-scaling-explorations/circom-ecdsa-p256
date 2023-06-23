@@ -137,7 +137,7 @@ function get_g_pow_stride{}_table(n, k) '''.format(stride)
 
 
 def get_ecdsa_func_str(n, k, stride_list):
-    ret_str = '''pragma circom 2.0.2;
+    ret_str = '''pragma circom 2.1.5;
 '''
     for stride in stride_list:
         cache_str = get_cache_str(n, k, stride)

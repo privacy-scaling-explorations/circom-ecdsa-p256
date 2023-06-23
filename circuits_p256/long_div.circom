@@ -1,4 +1,4 @@
-pragma circom 2.0.2;
+pragma circom 2.1.5;
 
 include "bigint_func.circom";
 include "p256_func.circom";
@@ -23,5 +23,19 @@ template longDivision(n, k, m) {
         q[i] <-- qVarTemp[0][i];
         log(q[i]);
     }
+
+    signal abProd[100];
+    component qpProdComp = BigMultNoCarry(64, 64, 64, 2, 4);
+    for (var i = 0; i < 2; i++) {
+        qpProdComp.a[i] <== q[i];
+    }
+    for (var i = 0; i < 4; i++) {
+        qpProdComp.b[i] <== p[i];
+    }
+    for (var i = 0; i < 5; i++) {
+        qpProd[i] <== qpProdComp.out[i]; // 130 bits
+    }
+
+    
 
 }
