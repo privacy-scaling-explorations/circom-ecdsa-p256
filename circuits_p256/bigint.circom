@@ -542,6 +542,8 @@ template BigModInv(n, k) {
 // in[i] contains values in the range -2^(m-1) to 2^(m-1)
 // constrain that in[] as a big integer is zero
 // each limbs is n bits
+
+// Num2Bits(n) circuit will fail equality check iff param n is too SMALL 
 template CheckCarryToZero(n, m, k) {
     assert(k >= 2);
     

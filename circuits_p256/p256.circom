@@ -166,7 +166,7 @@ template P256PointOnLine() {
 // checks if (x3, -y3) lies on the tangent line of (x1, y1),
 // which is necessary for checking if (x3, y3) is (x1, y1)^2 
 template P256PointOnTangent() {
-    signal input x1[4];
+    signal input x1[4]; // each register is 64-bits 
     signal input y1[4];
     signal input x3[4];
     signal input y3[4];
@@ -246,7 +246,7 @@ template P256PointOnCurve() {
     for (var i = 0; i < 4; i++) A[i] <== tmpA[i];
 
     signal B[4];
-    var tmpB[4] = get_B(64, 4);
+    var tmpB[100] = get_B(64, 4);
     for (var i = 0; i < 4; i++) B[i] <== tmpB[i];
     
     signal Ax[7];
@@ -254,7 +254,7 @@ template P256PointOnCurve() {
     for (var i = 0; i < 4; i++) AxComp.a[i] <== x[i];
     for (var i = 0; i < 4; i++) AxComp.b[i] <== A[i];
     for (var i = 0; i < 7; i++) Ax[i] <== AxComp.out[i];
-    
+
     component zeroCheck = CheckCubicModPIsZero(197); // 197 bits per register
     for (var i = 0; i < 10; i++) {
         if (i < 4) zeroCheck.in[i] <== x3[i] - y2[i] + Ax[i] + B[i];

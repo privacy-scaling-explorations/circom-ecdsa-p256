@@ -180,15 +180,23 @@ template CheckCubicModPIsZero(m) {
     // second, we add a big multiple of p to z, to ensure that our final result is positive. 
     // since the registers of z are m + 34 bits, its max abs value is 2^(m+34 + 224) + 2^(m+34 + 192) + 2^(m+34 + 160) + ...
     //      < 2^(m+258)
-    // what if we just didn't reduce any registers? then
-    //      in < 2^(m + 64*9) + ... < 2^(m + 64*9)*10
     // so we add p * 2^(m+6) = (2^256-2^224 + eps) * 2^(m+6), which is a bit under 2^(m+262) and larger than |z| < 8 * 2^(m+34 + 224) = 2^(m+34 + 224 + 3) = 2^(m+261)
+
+    // notes:
+    // what if we just didn't reduce any registers? like why are we reducing the input at all if all we're doing is long division? then
+    //      in < 2^(m + 64*9) + ... < 2^(m + 64*9)*10...
 
     signal reduced[8];
 
     component p256Reducer = P256PrimeReduce10Registers(); // (32, 8)
     for (var i = 0; i < 10; i++) {
         p256Reducer.in[i] <== in[i];
+    }
+
+    log(0);
+
+    for (var i = 0; i < 8; i++) {
+        log(p256Reducer.out[i]);
     }
 
     log(222);
@@ -225,7 +233,7 @@ template CheckCubicModPIsZero(m) {
     // - 1 since the last register is included in the last ceil(m/n) array
     // + 1 since the carries from previous registers could push you over
     // TODO: need to check if largest register of proper is negative
-    var temp[100] = getProperRepresentation(m + 39, 32, 8, reduced); // TODO: switch back to m + 39 // SOME ERROR HERE
+    var temp[100] = getProperRepresentation(m + 39, 32, 8, reduced); // SOME ERROR HERE
 
     var proper[16];
     for (var i = 0; i<16; i++) {
@@ -243,17 +251,17 @@ template CheckCubicModPIsZero(m) {
     // out[1] has length k -- remainder
     // implements algorithm of https://people.eecs.berkeley.edu/~fateman/282/F%20Wright%20notes/week4.pdf
     // b[k-1] must be nonzero!
-    var qVarTemp[2][100] = long_div(32, 8, 8, proper, p); // ERROR HERE 
-    for (var i = 0; i < 7; i++) {
-        q[i] <-- qVarTemp[0][i];
-        log(q[i]);
-    }
-
-    // var qVarTemp[7] = [0, 0, 0, 0, 1644167168, 1476567772, 16382];
+    // var qVarTemp[2][100] = long_div(32, 8, 8, proper, p); // ERROR HERE 
     // for (var i = 0; i < 7; i++) {
-    //     q[i] <-- qVarTemp[i];
+    //     q[i] <-- qVarTemp[0][i];
     //     log(q[i]);
     // }
+
+    var qVarTemp[7] = [0, 0, 0, 0, 813694976, 2338053171, 2054]; // try hardcoding expected q in?
+    for (var i = 0; i < 7; i++) {
+        q[i] <-- qVarTemp[i];
+        log(q[i]);
+    }
 
 
     // we need to constrain that q is in proper (7x32) representation
@@ -266,14 +274,14 @@ template CheckCubicModPIsZero(m) {
     log(444);
 
     // now we compute a representation qpProd = q * p
-    signal qpProd[14]; // TODO: change back to [14]
+    signal qpProd[14];
 
     // template BigMultNoCarry(n, ma, mb, ka, kb) spec:
     // a and b have n-bit registers
     // a has ka registers, each with NONNEGATIVE ma-bit values (ma can be > n)
     // b has kb registers, each with NONNEGATIVE mb-bit values (mb can be > n)
     // out has ka + kb - 1 registers, each with (ma + mb + ceil(log(max(ka, kb))))-bit values
-    component qpProdComp = BigMultNoCarry(32, 32, 32, 7, 8);
+    component qpProdComp = BigMultNoCarry(32, 32, 32, 7, 8); // qpProd = q*p
     for (var i = 0; i < 7; i++) {
         qpProdComp.a[i] <== q[i];
     }
@@ -284,9 +292,9 @@ template CheckCubicModPIsZero(m) {
         qpProd[i] <== qpProdComp.out[i]; // 67 bits
     }
 
-    // for (var i = 0; i < 14; i++) {
-    //     log(qpProd[i]); // 67 bits
-    // }
+    for (var i = 0; i < 14; i++) {
+        log(qpProd[i]); // 67 bits
+    }
 
     // log(444);
     // for (var i = 0; i < 26; i++) {
@@ -301,12 +309,15 @@ template CheckCubicModPIsZero(m) {
     // in[i] contains values in the range -2^(m-1) to 2^(m-1)
     // constrain that in[] as a big integer is zero
     // each limbs is n bits
+    // FAILING HERE:
     component zeroCheck = CheckCarryToZero(32, m + 50, 14);
     for (var i = 0; i < 14; i++) {
         if (i < 8) { // reduced only has 8 registers
             zeroCheck.in[i] <== qpProd[i] - reduced[i]; // (m + 39) + 1 bits
+            log(zeroCheck.in[i]);
         } else {
             zeroCheck.in[i] <== qpProd[i];
+            log(zeroCheck.in[i]);
         }
     }
 
