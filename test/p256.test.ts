@@ -282,8 +282,9 @@ describe('P256ScalarMult', function () {
   test_cases.forEach(test_p256_scalar_instance);
 });
 
-// TODO: figure out some way to test that if point is not on curve, pf gen should fail
-describe('P256PointOnCurve', function () {
+// TODO: change to p256 points
+// (gubsheep's note) TODO: figure out some way to test that if point is not on curve, pf gen should fail
+describe.only('P256PointOnCurve', function () {
   this.timeout(1000 * 1000);
 
   // runs circom compilation
@@ -295,19 +296,17 @@ describe('P256PointOnCurve', function () {
   // x, y, on/off
   var test_cases: Array<[bigint, bigint, boolean]> = [];
 
-  // base point G on curve
-  // TODO: change to p256 curve
+  // just using base point G on curve
   test_cases.push([
-    55066263022277343669578718895168534326250603453777594175500187360389116729240n,
-    32670510020758816978083085130507043184471273380659243275938904335757337482424n,
+    48439561293906451759052585252797914202762949526041747995844080717082404635286n,
+    36134250956749795798585127919587881956611106672985015071877198253568414405109n,
     true,
   ]);
 
-  // modified point not on curve
-  // TODO: change to p256 curve
+  // modified point not on curve (small perturbation on G)
   test_cases.push([
-    45066263022277343669578718895168534326250603453777594175500187360389116729240n,
-    22670510020758816978083085130507043184471273380659243275938904335757337482424n,
+    48439561293906451759052585252797914202762949526041747995844080717082404635287n,
+    36134250956749795798585127919587881956611106672985015071877198253568414405109n,
     false,
   ]);
 
