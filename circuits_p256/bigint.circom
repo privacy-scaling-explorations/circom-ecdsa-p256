@@ -547,7 +547,7 @@ template BigModInv(n, k) {
 template CheckCarryToZero(n, m, k) {
     assert(k >= 2);
     
-    var EPSILON = 3;
+    var EPSILON = 100; // suspect the problem is here!
     
     signal input in[k];
     
@@ -555,7 +555,7 @@ template CheckCarryToZero(n, m, k) {
     
     component carryRangeChecks[k];
     for (var i = 0; i < k-1; i++){
-        carryRangeChecks[i] = Num2Bits(m + EPSILON - n); 
+        carryRangeChecks[i] = Num2Bits(m + EPSILON - n); // number of bits to represent carryRangeChecks is incorrect
         if( i == 0 ){
             carry[i] <-- in[i] / (1<<n);
             // in[i] === carry[i] * (1<<n);
