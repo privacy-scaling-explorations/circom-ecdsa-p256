@@ -4,6 +4,7 @@ pragma circom 2.1.5;
 
 include "bigint.circom";
 
+// Returns a**2 as 7 130-bit registers
 template A2NoCarry() {
     signal input a[4];
 
@@ -19,6 +20,7 @@ template A2NoCarry() {
     }
 }
 
+// Returns a**3 as 10 197-bit registers
 template A3NoCarry() {
     signal input a[4];
 
@@ -45,6 +47,7 @@ template A3NoCarry() {
     }
 }
 
+// Returns a**2 * b as 10 197-bit registers
 template A2B1NoCarry() {
     signal input a[4];
     signal input b[4];
@@ -73,6 +76,7 @@ template A2B1NoCarry() {
     }
 }
 
+// Returns a*b*c as 10 197-bit registers
 template A1B1C1NoCarry() {
     signal input a[4];
     signal input b[4];
