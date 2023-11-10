@@ -1,5 +1,6 @@
 import path = require('path');
 import { expect, assert } from 'chai';
+import { randomBytes, hexlify } from 'ethers/lib/utils';
 const circom_tester = require('circom_tester');
 const wasm_tester = circom_tester.wasm;
 
@@ -10,6 +11,8 @@ exports.p = Scalar.fromString(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617'
 );
 const Fr = new F1Field(exports.p);
+
+const p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffffn;
 
 function bigint_to_array(n: number, k: number, x: bigint) {
   let mod: bigint = 1n;
@@ -26,6 +29,17 @@ function bigint_to_array(n: number, k: number, x: bigint) {
   return ret;
 }
 
+function evaluate(x: bigint[], n: bigint) {
+  let total = 0n
+  let i = 0n
+  let base = 2n**n;
+  for (let t of x) {
+    total += t*(base**i)
+    i += 1n
+  }
+  return total
+}
+
 function get_short(input: Array<number>, n: number) {
   let result = 0;
   for (var i = 0; i < input.length; i++) {
@@ -34,43 +48,47 @@ function get_short(input: Array<number>, n: number) {
   return result;
 }
 
-describe('get proper', function () {
+function get_random_array(num_bytes: number, k: number): bigint[] {
+  let input = [];
+  for (let i = 0; i < k; i++) {
+    input.push(BigInt(hexlify(randomBytes(num_bytes))));
+  }
+
+  return input;
+}
+
+describe.only('get proper', function () {
   this.timeout(1000 * 1000);
 
   // runs circom compilation
-  let circuit: any;
+  let circuit_32: any;
+  let circuit_64: any;
   before(async function () {
-    circuit = await wasm_tester(path.join(__dirname, 'circuits', 'test_scratch.circom'));
+    circuit_32 = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_proper_32.circom'));
+    circuit_64 = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_proper_64.circom'));
   });
 
-  // a, b, div, mod
-  var test_cases: Array<[bigint, bigint, bigint, bigint]> = [];
-  for (var a = 0n; a < 4 * 4 * 4 * 4; a++) {
-    for (var b = 4n; b < 4 * 4; b++) {
-      var div = a / b;
-      var mod = a % b;
-      test_cases.push([a, b, div, mod]);
+  it('getProperRepresentation(240,64,4)', async () => {
+    let test_proper = async (input: bigint[]) => {
+      let witness = await circuit_64.calculateWitness({"in": input});
+      let output = witness.slice(1,9);
+      assert(evaluate(input, 64n) == evaluate(output, 64n));
     }
-  }
 
-  var test_bigmod_22 = function (x: [bigint, bigint, bigint, bigint]) {
-    const [a, b, div, mod] = x;
+    for (let t = 0; t < 10; t++) {
+      await test_proper(get_random_array(30, 4));
+    }
+  });
 
-    var a_array: bigint[] = bigint_to_array(2, 4, a);
-    var b_array: bigint[] = bigint_to_array(2, 2, b);
-    var div_array: bigint[] = bigint_to_array(2, 3, div);
-    var mod_array: bigint[] = bigint_to_array(2, 2, mod);
+  it('getProperRepresentation(234, 32, 8)', async () => {
+    let test_proper = async (input: bigint[]) => {
+      let witness = await circuit_32.calculateWitness({"in": input});
+      let output = witness.slice(1,17);
+      assert(evaluate(input, 32n) == evaluate(output, 32n));
+    }
 
-    it('Testing a: ' + a + ' b: ' + b, async function () {
-      let witness = await circuit.calculateWitness({ a: a_array, b: b_array });
-      expect(witness[1]).to.equal(div_array[0]);
-      expect(witness[2]).to.equal(div_array[1]);
-      expect(witness[3]).to.equal(div_array[2]);
-      expect(witness[4]).to.equal(mod_array[0]);
-      expect(witness[5]).to.equal(mod_array[1]);
-      await circuit.checkConstraints(witness);
-    });
-  };
-
-  test_cases.forEach(test_bigmod_22);
+    for (let t = 0; t < 10; t++) {
+      await test_proper(get_random_array(29, 8));
+    }
+  });
 });
