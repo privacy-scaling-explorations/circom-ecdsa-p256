@@ -16,7 +16,7 @@ include "p256_utils.circom";
 // where p is the P256 field size
 // and lambda is the slope of the line between (x_1, y_1) and (x_2, y_2)
 // this equation is equivalent to:
-// x1^3 + x2^3 - x1^2x2 - x1x2^2 + x2^2x3 + x1^2x3 - 2x1x2x3 - y2^2 - 2y1y2 + y1^2 = 0 mod p
+// x1^3 + x2^3 - x1^2x2 - x1x2^2 + x2^2x3 + x1^2x3 - 2x1x2x3 - y2^2 + 2y1y2 - y1^2 = 0 mod p
 template AddUnequalCubicConstraint() {
     signal input x1[4];
     signal input y1[4];
