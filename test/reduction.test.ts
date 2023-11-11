@@ -16,9 +16,7 @@ const g_y = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5n
 
 function bigint_to_array(n: number, k: number, x: bigint) {
   let mod: bigint = 1n;
-  for (var idx = 0; idx < n; idx++) {
-      mod = mod * 2n;
-  }
+  mod = 2n**BigInt(n);
 
   let ret: bigint[] = [];
   var x_temp: bigint = x;
@@ -40,7 +38,7 @@ function evaluate(x: bigint[], n: bigint) {
   return total
 }
 
-describe.only("Reduction", function () {
+describe("Reduction", function () {
   this.timeout(1000 * 1000);
 
   let circuit: any;
@@ -52,7 +50,7 @@ describe.only("Reduction", function () {
       reduce_circuit_10 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_primereduce_10.circom"));
   });
 
-  it.only('PrimeReduce7Registers', async () => {
+  it('PrimeReduce7Registers', async () => {
     let test_reduction = async (input: bigint[]) => {
       console.log(evaluate(input, 64n));
       let witness = await reduce_circuit_7.calculateWitness({"in": input});
@@ -65,7 +63,7 @@ describe.only("Reduction", function () {
 
   });
 
-  it.only('PrimeReduce10Registers', async () => {
+  it('PrimeReduce10Registers', async () => {
     let test_reduction = async (input: bigint[]) => {
       console.log(evaluate(input, 64n));
       let witness = await reduce_circuit_10.calculateWitness({"in": input});
@@ -75,6 +73,5 @@ describe.only("Reduction", function () {
 
     let overflowed_registers = [1n, 2n**70n-1n, 2n**50n, 0n, 2n**40n, 0n, 2n**160n-1n, 0n, 2n**200n, 0n];
     await test_reduction(overflowed_registers);
-
   });
 });

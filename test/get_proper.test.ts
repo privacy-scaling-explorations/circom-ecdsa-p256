@@ -57,7 +57,7 @@ function get_random_array(num_bytes: number, k: number): bigint[] {
   return input;
 }
 
-describe.only('get proper', function () {
+describe('get proper', function () {
   this.timeout(1000 * 1000);
 
   // runs circom compilation
