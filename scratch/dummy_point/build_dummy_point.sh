@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PHASE1=../../circuits_p256/pot20_final.ptau
+PHASE1=../../circuits/pot20_final.ptau
 BUILD_DIR=../../build_86_3/dummy_point
 CIRCUIT_NAME=dummy_point
 

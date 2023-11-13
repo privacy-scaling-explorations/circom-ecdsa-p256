@@ -1,6 +1,6 @@
 pragma circom 2.1.5;
 
-include "../../circuits_p256/bigint_func.circom";
+include "../../circuits/bigint_func.circom";
 
 template TestProper(m,n,k) {
   signal input in[k];
