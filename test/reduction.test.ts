@@ -11,8 +11,12 @@ exports.p = Scalar.fromString("2188824287183927522224640574525727508854836440041
 const Fr = new F1Field(exports.p);
 
 const p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffffn;
-const g_x = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296n;
-const g_y = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5n
+const p_circom = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+const half_p_circom = 10944121435919637611123202872628637544274182200208017171849102093287904247808n;
+
+
+//const g_x = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296n;
+//const g_y = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5n
 
 function bigint_to_array(n: number, k: number, x: bigint) {
   let mod: bigint = 1n;
@@ -32,20 +36,24 @@ function evaluate(x: bigint[], n: bigint) {
   let i = 0n
   let base = 2n**n;
   for (let t of x) {
-    total += t*(base**i)
+    if (t <= half_p_circom) {
+      total += t*(base**i)
+    } else {
+      total -= (p_circom-t)*(base**i)
+    }
     i += 1n
   }
   return total
 }
 
-describe("Reduction", function () {
+describe.only("Reduction", function () {
   this.timeout(1000 * 1000);
 
-  let circuit: any;
+  //let circuit: any;
   let reduce_circuit_7: any;
   let reduce_circuit_10: any;
   before(async function () {
-      circuit = await wasm_tester(path.join(__dirname, "circuits_p256", "test_reduction.circom"));
+      //circuit = await wasm_tester(path.join(__dirname, "circuits_p256", "test_reduction.circom"));
       reduce_circuit_7 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_primereduce_7.circom"));
       reduce_circuit_10 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_primereduce_10.circom"));
   });
@@ -69,9 +77,13 @@ describe("Reduction", function () {
       let witness = await reduce_circuit_10.calculateWitness({"in": input});
       let output = witness.slice(1,9);
       assert(evaluate(input, 64n) % p == evaluate(output, 32n) % p);
+      console.log(evaluate(output, 32n));
     }
 
     let overflowed_registers = [1n, 2n**70n-1n, 2n**50n, 0n, 2n**40n, 0n, 2n**160n-1n, 0n, 2n**200n, 0n];
     await test_reduction(overflowed_registers);
+
+    let negative_registers = [1n, 2n**70n, p_circom-2n**100n, 0n, 0n, 0n, 2n**180n, 0n, 2n**10n, 0n];
+    await test_reduction(negative_registers);
   });
 });
