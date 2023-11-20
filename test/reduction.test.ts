@@ -60,7 +60,6 @@ describe.only("Reduction", function () {
 
   it('PrimeReduce7Registers', async () => {
     let test_reduction = async (input: bigint[]) => {
-      console.log(evaluate(input, 64n));
       let witness = await reduce_circuit_7.calculateWitness({"in": input});
       let output = witness.slice(1,5);
       assert(evaluate(input, 64n) % p == evaluate(output, 64n) % p);
@@ -69,6 +68,8 @@ describe.only("Reduction", function () {
     let overflowed_registers = [1n, 2n**70n-1n, 2n**50n, 0n, 2n**150n, 0n, 0n];
     await test_reduction(overflowed_registers);
 
+    let negative_registers = [1n, 2n**70n-1n, 2n**50n, 0n, p_circom-2n**50n, 0n, 0n];
+    await test_reduction(negative_registers);
   });
 
   it('PrimeReduce10Registers', async () => {
@@ -77,7 +78,6 @@ describe.only("Reduction", function () {
       let witness = await reduce_circuit_10.calculateWitness({"in": input});
       let output = witness.slice(1,9);
       assert(evaluate(input, 64n) % p == evaluate(output, 32n) % p);
-      console.log(evaluate(output, 32n));
     }
 
     let overflowed_registers = [1n, 2n**70n-1n, 2n**50n, 0n, 2n**40n, 0n, 2n**160n-1n, 0n, 2n**200n, 0n];
