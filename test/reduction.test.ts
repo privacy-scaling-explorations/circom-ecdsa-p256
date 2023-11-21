@@ -111,6 +111,19 @@ describe.only("Reduction", function () {
     console.log(output);
     assert(evaluate(output, 32n) % p == 0n);
 
+    /*
+    let p_8 = [4294967295n, 4294967295n, 4294967295n, 0n, 0n, 0n, 1n, 4294967295n];
+    for (let i =0; i < 8; i++) {
+      p_8[i] = p_8[i] * (1n << 206n);
+    }
+    let combined = p_8.map((v, i) => v+output[i]);
+    console.log(evaluate(combined, 32n) % p );
+    */
+
+    // Given that both the reduced registers and reduced+multipleOfP are correctly 0 mod p,
+    // this leads to the proper representation being the issue, as manually taking that mod p is not 0
+
+
     // Why does this not work? If we reduce by the prime, then we should get 0...
     witness = await prime_reduce_circuit.calculateWitness({"in": x});
     output = witness.slice(1,5);
