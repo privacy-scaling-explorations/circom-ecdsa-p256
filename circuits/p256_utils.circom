@@ -156,6 +156,7 @@ template CheckCubicModPIsZero(m) {
 
     signal input in[10];
 
+    log("===CheckCubicMod===");
     for (var i=0; i<10; i++) { // should be at most 200-bit registers
         log(in[i]);
     }

@@ -1,4 +1,4 @@
-// DONE FILE
+    // DONE FILE
 
 pragma circom 2.1.5;
 
@@ -87,6 +87,13 @@ template AddUnequalCubicConstraint() {
     }
     
     log(11);
+
+
+    log("===x13===");
+    for (var i = 0; i < 10; i++) {
+        log(x13[i]);
+    }
+
  
     // fail here
     component zeroCheck = CheckCubicModPIsZero(200); // 200 bits per register
