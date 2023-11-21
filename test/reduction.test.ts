@@ -49,13 +49,17 @@ function evaluate(x: bigint[], n: bigint) {
 describe.only("Reduction", function () {
   this.timeout(1000 * 1000);
 
-  //let circuit: any;
+  let prime_reduce_circuit: any;
   let reduce_circuit_7: any;
   let reduce_circuit_10: any;
+  let proper_circuit_32: any;
+  let proper_circuit_64: any;
   before(async function () {
-      //circuit = await wasm_tester(path.join(__dirname, "circuits_p256", "test_reduction.circom"));
+      prime_reduce_circuit = await wasm_tester(path.join(__dirname, "circuits_p256", "test_p256_issues.circom"));
       reduce_circuit_7 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_primereduce_7.circom"));
       reduce_circuit_10 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_primereduce_10.circom"));
+      proper_circuit_32 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_proper_32.circom"));
+      proper_circuit_64 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_proper_64.circom"));
   });
 
   it('PrimeReduce7Registers', async () => {
@@ -107,6 +111,10 @@ describe.only("Reduction", function () {
     console.log(output);
     assert(evaluate(output, 32n) % p == 0n);
 
-
+    // Why does this not work? If we reduce by the prime, then we should get 0...
+    witness = await prime_reduce_circuit.calculateWitness({"in": x});
+    output = witness.slice(1,5);
+    console.log(output);
+    console.log(evaluate(output, 64n) % p);
   });
 });
