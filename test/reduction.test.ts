@@ -54,12 +54,14 @@ describe.only("Reduction", function () {
   let reduce_circuit_10: any;
   let proper_circuit_32: any;
   let proper_circuit_64: any;
+  let pairing_add: any;
   before(async function () {
       prime_reduce_circuit = await wasm_tester(path.join(__dirname, "circuits_p256", "test_p256_issues.circom"));
       reduce_circuit_7 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_primereduce_7.circom"));
       reduce_circuit_10 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_primereduce_10.circom"));
       proper_circuit_32 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_proper_32.circom"));
       proper_circuit_64 = await wasm_tester(path.join(__dirname, "circuits_p256", "test_proper_64.circom"));
+      pairing_add = await wasm_tester(path.join(__dirname, "circuits_p256", "test_pairing_add.circom"));
   });
 
   it('PrimeReduce7Registers', async () => {
@@ -125,9 +127,30 @@ describe.only("Reduction", function () {
 
 
     // Why does this not work? If we reduce by the prime, then we should get 0...
+    // Values in x are > 2^252, which is the max the PrimeReduce circuit can take
     witness = await prime_reduce_circuit.calculateWitness({"in": x});
     output = witness.slice(1,5);
     console.log(output);
     console.log(evaluate(output, 64n) % p);
+  });
+
+  it('Test pairing add', async () => {
+    // a = (51323763109374747624100439246882351858048138407785253143713149291653816160968,
+    //    93836593410645249851930587355592126083379492007445695156684532532430087249995)
+    // b = (15158989517374606102125666263834241466554731622775950185683878496736854948661,
+    //    96566585871555740846077273591551549731149164699384431564123679057941351907659)
+    let a = [bigint_to_array(43, 6, 51323763109374747624100439246882351858048138407785253143713149291653816160968n),
+            bigint_to_array(43, 6, 93836593410645249851930587355592126083379492007445695156684532532430087249995n)]
+    let b = [bigint_to_array(43, 6, 15158989517374606102125666263834241466554731622775950185683878496736854948661n),
+            bigint_to_array(43, 6, 96566585871555740846077273591551549731149164699384431564123679057941351907659n)]
+    
+    let witness = await pairing_add.calculateWitness({"a": a, "b": b});
+    let output = witness.slice(1, 13);
+
+    let c_x = output.slice(0,6);
+    let c_y = output.slice(6, 12);
+
+    assert(evaluate(c_x, 43n) == 58697531123994895582260511080010466049175981236279930667057805814208783629959n);
+    assert(evaluate(c_y, 43n) ==  92511341067251309075653963355757944451294864382177558832891851970965804116128n);
   });
 });
