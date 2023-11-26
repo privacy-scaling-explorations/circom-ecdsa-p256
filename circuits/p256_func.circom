@@ -36,10 +36,8 @@ pragma circom 2.1.5;
 //     return ret;
 // }
 
-//done
-// returns n-bit k-register representation of A coefficient in P256 elliptic curve
 function get_A(n, k) {
-    assert((n == 86 && k == 3) || (n == 64 && k == 4));
+    assert((n == 86 && k == 3) || (n == 64 && k == 4) || (n == 43 && k ==6));
     var ret[100];
     if (n == 86 && k == 3) {
         ret[0] = 77371252455336267181195260;
@@ -53,12 +51,21 @@ function get_A(n, k) {
         ret[2] = 0;
         ret[3] = 18446744069414584321;
     }
+
+    if (n == 43 && k == 6) {
+        ret[0] = 8796093022204;
+        ret[1] = 8796093022207;
+        ret[2] = 1023;
+        ret[3] = 0;
+        ret[4] = 1048576;
+        ret[5] = 2199023255040;
+    }
     return ret;
 }
 
 //done
 function get_B(n,k) {
-    assert((n == 86 && k == 3) || (n == 64 && k == 4));
+    assert((n == 86 && k == 3) || (n == 64 && k == 4) || (n == 43 && k ==6));
     var ret[100];
     if (n == 86 && k == 3) {
         ret[0] = 23805269282153275520606283;
@@ -72,45 +79,64 @@ function get_B(n,k) {
         ret[2] = 12964664127075681980;
         ret[3] = 6540974713487397863;
     }
+
+    if (n == 43 && k == 6) {
+        ret[0] = 4665002582091;
+        ret[1] = 2706345785799;
+        ret[2] = 1737114698545;
+        ret[3] = 7330356544350;
+        ret[4] = 4025432620731;
+        ret[5] = 779744948564;
+    }
+
     return ret;
 }
 
 //done
 function get_p256_prime(n, k) {
-     assert((n == 86 && k == 3) || (n == 64 && k == 4) || (n == 32 && k == 8));
+     assert((n == 86 && k == 3) || (n == 64 && k == 4) || (n == 32 && k == 8) || (n == 43 && k == 6));
     
     // done
-     var ret[100];
-     if (n == 86 && k == 3) {
-         ret[0] = 77371252455336267181195263;
-         ret[1] = 1023;
-         ret[2] = 19342813109330467168976896;
-     }
+    var ret[100];
+    if (n == 86 && k == 3) {
+        ret[0] = 77371252455336267181195263;
+        ret[1] = 1023;
+        ret[2] = 19342813109330467168976896;
+    }
 
-     // done
-     if (n == 64 && k == 4) {
-         ret[0] = 18446744073709551615;
-         ret[1] = 4294967295;
-         ret[2] = 0;
-         ret[3] = 18446744069414584321;
-     }
+    // done
+    if (n == 64 && k == 4) {
+        ret[0] = 18446744073709551615;
+        ret[1] = 4294967295;
+        ret[2] = 0;
+        ret[3] = 18446744069414584321;
+    }
 
-     if (n==32 && k==8) {
-         ret[0] = 4294967295;
-         ret[1] = 4294967295;
-         ret[2] = 4294967295;
-         ret[3] = 0;
-         ret[4] = 0;
-         ret[5] = 0;
-         ret[6] = 1;
-         ret[7] = 4294967295;
-     }
-     return ret;
+    if (n==32 && k==8) {
+        ret[0] = 4294967295;
+        ret[1] = 4294967295;
+        ret[2] = 4294967295;
+        ret[3] = 0;
+        ret[4] = 0;
+        ret[5] = 0;
+        ret[6] = 1;
+        ret[7] = 4294967295;
+    }
+
+    if (n == 43 && k == 6) {
+        ret[0] = 8796093022207;
+        ret[1] = 8796093022207;
+        ret[2] = 1023;
+        ret[3] = 0;
+        ret[4] = 1048576;
+        ret[5] = 2199023255040;
+    }
+    return ret;
 }
 
 //done 
 function get_p256_order(n, k) {
-    assert((n == 86 && k == 3) || (n == 64 && k == 4));
+    assert((n == 86 && k == 3) || (n == 64 && k == 4) || (n == 43 && k ==6));
     var ret[100];
 
     //done
@@ -127,6 +153,15 @@ function get_p256_order(n, k) {
         ret[2] = 18446744073709551615;
         ret[3] = 18446744069414584320;
     }
+
+    if (n == 43 && k == 6) {
+        ret[0] = 3036481267025;
+        ret[1] = 3246200354617;
+        ret[2] = 7643362670236;
+        ret[3] = 8796093022207;
+        ret[4] = 1048575;
+        ret[5] = 2199023255040;
+    }
     return ret;
 }
 
@@ -134,7 +169,7 @@ function get_p256_order(n, k) {
 // TODO check that this is correct...
 // DONE: change to P256 generator (double 255 times)
 function get_dummy_point(n, k) {
-    assert(n == 86 && k == 3 || n == 64 && k == 4);
+    assert(n == 86 && k == 3 || n == 64 && k == 4 || n == 43 && k == 6);
     var ret[2][100]; // should be [2][k]
     if (k == 3) {
         // done
@@ -144,7 +179,7 @@ function get_dummy_point(n, k) {
         ret[1][0] = 20405083474242608521046015;
         ret[1][1] = 57969189420107975911442337;
         ret[1][2] = 12380911704996683387468560;
-    } else {
+    } else if (k == 4) {
         // done
         ret[0][0] = 4385603450014130423;
         ret[0][1] = 5129391198466743360;
@@ -154,116 +189,39 @@ function get_dummy_point(n, k) {
         ret[1][1] = 13067171496386086;
         ret[1][2] = 16363666747424765582;
         ret[1][3] = 9735895490635206920;
+    } else if (k == 6) {
+        ret[0][0] = 5013155818324;
+        ret[0][1] = 5653956830653;
+        ret[0][2] = 1357089440655;
+        ret[0][3] = 4985459479134;
+        ret[0][4] = 7362399503982;
+        ret[0][5] = 1028176290396;
+        ret[1][0] = 2185447106559;
+        ret[1][1] = 2319789413632;
+        ret[1][2] = 3837703653281;
+        ret[1][3] = 6590333830457;
+        ret[1][4] = 5404134177552;
+        ret[1][5] = 1407546699851;
     }
     return ret;
 }
 
-// a[0], a[1] = x1, y1
-// b[0], b[1] = x2, y2
-// lamb = (b[1] - a[1]) / (b[0] - a[0]) % p
-// out[0] = lamb ** 2 - a[0] - b[0] % p
-// out[1] = lamb * (a[0] - out[0]) - a[1] % p 
+function get_p256_params() {
+    var a[100] = get_A(43, 6);
+    var b[100] = get_B(43, 6);
+    var p[100] = get_p256_prime(43, 6);
+    var n[100] = get_p256_order(43, 6);
 
-// done
-function p256_addunequal_func(n, k, x1, y1, x2, y2){
-    var a[2][100];
-    var b[2][100];
-
-    for(var i = 0; i < k; i++){
-        a[0][i] = x1[i];
-        a[1][i] = y1[i];
-        b[0][i] = x2[i];
-        b[1][i] = y2[i];
+    var A[6];
+    var B[6];
+    var P[6];
+    var N[6];
+    for (var i = 0; i < 6; i++) {
+        A[i] = a[i];
+        B[i] = b[i];
+        P[i] = p[i];
+        N[i] = n[i];
     }
 
-    var out[2][100];
-
-    var p[100] = get_p256_prime(n, k);
-
-    // b[1] - a[1]
-    var sub1_out[100] = long_sub_mod_p(n, k, b[1], a[1], p);
-
-    // b[0] - a[0]
-    var sub0_out[100]= long_sub_mod_p(n, k, b[0], a[0], p);
-
-    // lambda = (b[1] - a[1]) * inv(b[0] - a[0])
-    var sub0inv[100] = mod_inv(n, k, sub0_out, p);
-    var lambda[100] = prod_mod_p(n, k, sub1_out, sub0inv, p);
-
-    // out[0] = lambda ** 2 - a[0] - b[0]
-    var lambdasq_out[100] = prod_mod_p(n, k, lambda, lambda, p);
-    var out0_pre_out[100] = long_sub_mod_p(n, k, lambdasq_out, a[0], p);
-    var out0_out[100] = long_sub_mod_p(n, k, out0_pre_out, b[0], p);
-    for (var i = 0; i < k; i++) {
-        out[0][i] = out0_out[i];
-    }
-
-    // out[1] = lambda * (a[0] - out[0]) - a[1]
-    var out1_0_out[100] = long_sub_mod_p(n, k, a[0], out[0], p);
-    var out1_1_out[100] = prod_mod_p(n, k, lambda, out1_0_out, p);
-    var out1_out[100] = long_sub_mod_p(n, k, out1_1_out, a[1], p);
-    for (var i = 0; i < k; i++) {
-        out[1][i] = out1_out[i];
-    }
-
-    return out;
-}
-
-// a[0], a[1] = x1, y1
-// lamb = (3 * a[0] ** 2) / (2 * a[1]) % p
-// out[0] = lamb ** 2 - (2 * a[0]) % p
-// out[1] = lamb * (a[0] - out[0]) - a[1] % p
-
-
-// done
-function p256_double_func(n, k, x1, y1){
-    var a[2][100];
-    var b[2][100];
-
-    for(var i = 0; i < k; i++){
-        a[0][i] = x1[i];
-        a[1][i] = y1[i];
-    }
-
-    var out[2][100];
-
-    var p[100] = get_p256_prime(n, k);
-
-    // lamb_numer = 3 * a[0] ** 2 + A
-    var x1_sq[100] = prod_mod_p(n, k, a[0], a[0], p);
-    var A[100] = get_A(n, k);
-    var three[100];
-    for (var i = 0; i < 100; i++) three[i] = i == 0 ? 3 : 0;
-
-    var lamb_numer[100] = prod_mod_p(n, k, x1_sq, three, p); // 3 * a[0] ** 2
-    for (var i = 0; i < 100; i++) { // + A
-        lamb_numer[i] += A[i];
-    }
-
-    // lamb_denom = 2 * a[1]
-    var two[100];
-    for (var i = 0; i < 100; i++) two[i] = i == 0 ? 2 : 0;
-    var lamb_denom[100] = prod_mod_p(n, k, a[1], two, p);
-
-    // lambda = lamb_numer * inv(lamb_denom)
-    var lamb_denom_inv[100] = mod_inv(n, k, lamb_denom, p);
-    var lambda[100] = prod_mod_p(n, k, lamb_numer, lamb_denom_inv, p);
-
-    // out[0] = lambda ** 2 - 2 * a[0]
-    var lambdasq_out[100] = prod_mod_p(n, k, lambda, lambda, p);
-    var out0_pre_out[100] = long_sub_mod_p(n, k, lambdasq_out, a[0], p);
-    var out0_out[100] = long_sub_mod_p(n, k, out0_pre_out, a[0], p);
-    for (var i = 0; i < k; i++) {
-        out[0][i] = out0_out[i];
-    }
-
-    // out[1] = lambda * (a[0] - out[0]) - a[1]
-    var out1_0_out[100] = long_sub_mod_p(n, k, a[0], out[0], p);
-    var out1_1_out[100] = prod_mod_p(n, k, lambda, out1_0_out, p);
-    var out1_out[100] = long_sub_mod_p(n, k, out1_1_out, a[1], p);
-    for (var i = 0; i < k; i++) {
-        out[1][i] = out1_out[i];
-    }
-
-    return out;
+    return [A,B,P,N];
 }
