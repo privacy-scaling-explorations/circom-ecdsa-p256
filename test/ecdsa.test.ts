@@ -1,8 +1,9 @@
 import path = require('path');
 
 import { expect, assert } from 'chai';
-import { getPublicKey, sign, Point } from '@noble/secp256k1';
+//import { getPublicKey, sign, Point } from '@noble/secp256k1';
 import { P256 } from '@noble/curves/p256';
+import { SignatureType } from '@noble/curves/abstract/weierstrass';
 const circom_tester = require('circom_tester');
 const wasm_tester = circom_tester.wasm;
 
@@ -54,7 +55,7 @@ function get_strided_bigint(stride: bigint, small_stride: bigint, x: bigint) {
   return ret;
 }
 
-describe.only('ECDSAPrivToPub', function () {
+describe('ECDSAPrivToPub', function () {
   this.timeout(1000 ** 10);
 
   // runs circom compilation
@@ -138,7 +139,7 @@ function Uint8Array_to_bigint(x: Uint8Array) {
   return ret;
 }
 
-describe('ECDSAVerifyNoPubkeyCheck', function () {
+describe.only('ECDSAVerifyNoPubkeyCheck', function () {
   this.timeout(1000 ** 10);
 
   // privkey, msghash, pub0, pub1
@@ -157,7 +158,7 @@ describe('ECDSAVerifyNoPubkeyCheck', function () {
 
   let circuit: any;
   before(async function () {
-    circuit = await wasm_tester(path.join(__dirname, 'circuits', 'test_ecdsa_verify.circom'));
+    circuit = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_ecdsa_verify.circom'));
   });
 
   var test_ecdsa_verify = function (test_case: [bigint, bigint, bigint, bigint]) {
@@ -179,25 +180,19 @@ describe('ECDSAVerifyNoPubkeyCheck', function () {
         pub1,
       async function () {
         // in compact format: r (big-endian), 32-bytes + s (big-endian), 32-bytes
-        var sig: Uint8Array = await sign(msghash, bigint_to_Uint8Array(privkey), {
-          canonical: true,
-          der: false,
-        });
-        var r: Uint8Array = sig.slice(0, 32);
-        var r_bigint: bigint = Uint8Array_to_bigint(r);
-        var s: Uint8Array = sig.slice(32, 64);
-        var s_bigint: bigint = Uint8Array_to_bigint(s);
+        var sig: SignatureType = P256.sign(msghash, privkey);
+
+        var r: bigint = sig.r;
+        var s: bigint = sig.s;
 
         var priv_array: bigint[] = bigint_to_array(43, 6, privkey);
-        var r_array: bigint[] = bigint_to_array(43, 6, r_bigint);
-        var s_array: bigint[] = bigint_to_array(43, 6, s_bigint);
+        var r_array: bigint[] = bigint_to_array(43, 6, r);
+        var s_array: bigint[] = bigint_to_array(43, 6, s);
         var msghash_array: bigint[] = bigint_to_array(43, 6, msghash_bigint);
         var pub0_array: bigint[] = bigint_to_array(43, 6, pub0);
         var pub1_array: bigint[] = bigint_to_array(43, 6, pub1);
         var res = 1n;
 
-        console.log('r', r_bigint);
-        console.log('s', s_bigint);
         let witness = await circuit.calculateWitness({
           r: r_array,
           s: s_array,
@@ -220,25 +215,18 @@ describe('ECDSAVerifyNoPubkeyCheck', function () {
         pub1,
       async function () {
         // in compact format: r (big-endian), 32-bytes + s (big-endian), 32-bytes
-        var sig: Uint8Array = await sign(msghash, bigint_to_Uint8Array(privkey), {
-          canonical: true,
-          der: false,
-        });
-        var r: Uint8Array = sig.slice(0, 32);
-        var r_bigint: bigint = Uint8Array_to_bigint(r);
-        var s: Uint8Array = sig.slice(32, 64);
-        var s_bigint: bigint = Uint8Array_to_bigint(s);
+        var sig: SignatureType = P256.sign(msghash, privkey);
+        var r = sig.r;
+        var s = sig.s;
 
         var priv_array: bigint[] = bigint_to_array(43, 6, privkey);
-        var r_array: bigint[] = bigint_to_array(43, 6, r_bigint + 1n);
-        var s_array: bigint[] = bigint_to_array(43, 6, s_bigint);
+        var r_array: bigint[] = bigint_to_array(43, 6, r + 1n);
+        var s_array: bigint[] = bigint_to_array(43, 6, s);
         var msghash_array: bigint[] = bigint_to_array(43, 6, msghash_bigint);
         var pub0_array: bigint[] = bigint_to_array(43, 6, pub0);
         var pub1_array: bigint[] = bigint_to_array(43, 6, pub1);
         var res = 0n;
 
-        console.log('r', r_bigint + 1n);
-        console.log('s', s_bigint);
         let witness = await circuit.calculateWitness({
           r: r_array,
           s: s_array,
