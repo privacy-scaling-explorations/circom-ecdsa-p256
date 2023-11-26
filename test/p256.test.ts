@@ -31,7 +31,7 @@ function bigint_to_array(n: number, k: number, x: bigint) {
   return ret;
 }
 
-describe.only('P256AddUnequal', function () {
+describe('P256AddUnequal', function () {
   this.timeout(1000 * 1000);
 
   // runs circom compilation
