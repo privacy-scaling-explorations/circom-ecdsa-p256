@@ -2,12 +2,12 @@
 
 pragma circom 2.1.5;
 
-include "../node_modules/circomlib/circuits/comparators.circom";
+//include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/multiplexer.circom";
 
-include "bigint.circom";
+//include "bigint.circom";
 include "p256.circom";
-include "bigint_func.circom";
+//include "bigint_func.circom";
 include "ecdsa_func.circom";
 include "p256_func.circom";
 
@@ -239,4 +239,14 @@ template ECDSAExtendedVerify(n, k) {
     signal input msghash[k];
 
     signal output result;
+}
+
+function div_ceil(m, n) {
+    var ret = 0;
+    if (m % n == 0) {
+        ret = m \ n;
+    } else {
+        ret = m \ n + 1;
+    }
+    return ret;
 }
