@@ -1,10 +1,10 @@
-# circom-ecdsa
+# circom-ecdsa-p256
 
-Implementation of ECDSA operations in circom.
+Implementation of ECDSA operations in circom for the P-256 curve.
 
 ## Project overview
 
-This repository provides proof-of-concept implementations of ECDSA operations in circom. **These implementations are for demonstration purposes only**. These circuits are not audited, and this is not intended to be used as a library for production-grade applications.
+This repository provides proof-of-concept implementations of ECDSA operations on the P-256 curve in circom. **These implementations are for demonstration purposes only**. These circuits are not audited, and this is not intended to be used as a library for production-grade applications.
 
 Circuits can be found in `circuits`. `scripts` contains various utility scripts (most importantly, scripts for building a few example zkSNARKs using the ECDSA circuit primitives). `test` contains some unit tests for the circuits, mostly for witness generation.
 
@@ -37,25 +37,25 @@ The following circuits are implemented and can be found in `circuits/ecdsa.circo
 - `ECDSAPrivToPub`: Given a secp256k1 private key, outputs the corresponding public key by computing `(private_key) * G` where `G` is the base point of secp256k1.
 - `ECDSAVerifyNoPubkeyCheck`: Given a signature `(r, s)`, a message hash, and a secp256k1 public key, it follows ecdsa verification algorithm to extract `r'` from `s`, message hash and public key, and then compares `r'` with `r` to see if the signaure is correct. The output result is `1` if `r'` and `r` are equal, `0` otherwise.
 
-The 256-bits input and output are chunked and represented as `k` `n`-bits values where `k` is `4` and `n` is `64`. Please see above examples for concrete usages.
+The 256-bits input and output are chunked and represented as `k` `n`-bits values where `k` is `6` and `n` is `43`. Please see above examples for concrete usages.
 
 WARNING: Beware that the input to the above circuits should be properly checked and guarded (Lies on the curve, not equal to zero, etc). The purpose of the above circuits is to serve as building blocks but not as stand alone circuits to deploy.
 
 ## Benchmarks
 
-All benchmarks were run on a 16-core 3.0GHz, 32G RAM machine (AWS c5.4xlarge instance).
+All benchmarks were run on a 7700x, 32GB RAM machine
 
 |                                      | pubkeygen | eth_addr | groupsig | verify  |
 | ------------------------------------ | --------- | -------- | -------- | ------- |
-| Constraints                          | 95444     | 247380   | 250938   | 1508136 |
-| Circuit compilation                  | 21s       | 47s      | 48s      | 72s     |
-| Witness generation                   | 11s       | 11s      | 12s      | 175s    |
-| Trusted setup phase 2 key generation | 71s       | 94s      | 98s      | 841s    |
-| Trusted setup phase 2 contribution   | 9s        | 20s      | 19s      | 149s    |
-| Proving key size                     | 62M       | 132M     | 134M     | 934M    |
-| Proving key verification             | 61s       | 81s      | 80s      | 738s    |
-| Proving time                         | 3s        | 7s       | 6s       | 45s     |
-| Proof verification time              | 1s        | <1s      | 1s       | 1s      |
+| Constraints                          | 114724    | 247380   | 250938   | 1972905 |
+| Circuit compilation                  | 15s       | 47s      | 48s      | 43s     |
+| Witness generation                   | 6s        | 11s      | 12s      | 77s     |
+| Trusted setup phase 2 key generation | 46s       | 94s      | 98s      | ?s      |
+| Trusted setup phase 2 contribution   | 6s        | 20s      | 19s      | ?s      |
+| Proving key size                     | 102M      | 132M     | 134M     | ?M      |
+| Proving key verification             | 48s       | 81s      | 80s      | ?s      |
+| Proving time                         | 3s        | 7s       | 6s       | ?s      |
+| Proof verification time              | <1s       | <1s      | 1s       | ?s      |
 
 ## Testing
 

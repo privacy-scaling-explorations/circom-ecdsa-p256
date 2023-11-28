@@ -1,4 +1,4 @@
-// DONE FILE
+/// This file provides methods to grab curve parameter based on various representations
 
 pragma circom 2.1.5;
 

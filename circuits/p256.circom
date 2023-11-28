@@ -3,7 +3,6 @@ pragma circom 2.1.5;
 include "circom-pairing/circuits/curve.circom";
 include "p256_func.circom";
 
-// done
 template P256AddUnequal(n, k) {
     assert(n == 43 && k == 6);
 

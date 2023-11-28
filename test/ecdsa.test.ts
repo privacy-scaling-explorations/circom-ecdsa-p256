@@ -1,7 +1,6 @@
 import path = require('path');
 
 import { expect, assert } from 'chai';
-//import { getPublicKey, sign, Point } from '@noble/secp256k1';
 import { P256 } from '@noble/curves/p256';
 import { SignatureType } from '@noble/curves/abstract/weierstrass';
 const circom_tester = require('circom_tester');

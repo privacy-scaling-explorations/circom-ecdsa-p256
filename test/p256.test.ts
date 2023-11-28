@@ -1,9 +1,6 @@
-// TODO FILE
-
 import path = require('path');
 
 import { expect, assert } from 'chai';
-// import { getPublicKey, Point } from '@noble/secp256k1';
 import { P256 } from '@noble/curves/p256';
 import { ProjConstructor, ProjPointType } from '@noble/curves/abstract/weierstrass';
 const circom_tester = require('circom_tester');
@@ -38,8 +35,6 @@ describe('P256AddUnequal', function () {
   let circuit: any;
   before(async function () {
     circuit = await wasm_tester(path.join(__dirname, 'circuits_p256', 'test_p256_add.circom'));
-
-    console.log('circuit built');
   });
 
   // pub0x, pub0y, pub1x, pub0y, sumx, sumy
@@ -56,7 +51,6 @@ describe('P256AddUnequal', function () {
   var pubkeys: Array<ProjPointType<bigint>> = [];
   for (var idx = 0; idx < 4; idx++) {
     var pubkey = P256.ProjectivePoint.fromPrivateKey(privkeys[idx]);
-    // console.log(pubkey);
     pubkeys.push(pubkey);
   }
 
@@ -106,13 +100,11 @@ describe('P256AddUnequal', function () {
         ' sumy: ' +
         sumy,
       async function () {
-        console.log('begin async func');
         let witness = await circuit.calculateWitness({
           a: [pub0x_array, pub0y_array],
           b: [pub1x_array, pub1y_array],
         });
 
-        console.log('witnesses caclulated');
         expect(witness[1]).to.equal(sumx_array[0]);
         expect(witness[2]).to.equal(sumx_array[1]);
         expect(witness[3]).to.equal(sumx_array[2]);
@@ -125,17 +117,10 @@ describe('P256AddUnequal', function () {
         expect(witness[10]).to.equal(sumy_array[3]);
         expect(witness[11]).to.equal(sumy_array[4]);
         expect(witness[12]).to.equal(sumy_array[5]);
-
-        console.log('witnesses equal');
         await circuit.checkConstraints(witness);
-
-        console.log('constraints correct');
       }
     );
   };
-
-  // TODO: COMMENT OUT
-  test_cases = [test_cases[0]];
 
   test_cases.forEach(test_p256_add_instance);
 });
@@ -220,7 +205,6 @@ describe('P256ScalarMult', function () {
   var test_cases: Array<[bigint, bigint, bigint, bigint, bigint]> = [];
 
   // 4 randomly chosen private keys
-  // TODO: change (sk, pk) = (d_a, g^d_a) for p256 curve
   var privkeys: Array<bigint> = [
     88549154299169935420064281163296845505587953610183896504176354567359434168161n,
     37706893564732085918706190942542566344879680306879183356840008504374628845468n,
@@ -294,8 +278,6 @@ describe('P256ScalarMult', function () {
   test_cases.forEach(test_p256_scalar_instance);
 });
 
-// TODO: change to p256 points
-// (gubsheep's note) TODO: figure out some way to test that if point is not on curve, pf gen should fail
 describe('P256PointOnCurve', function () {
   this.timeout(1000 * 1000);
 

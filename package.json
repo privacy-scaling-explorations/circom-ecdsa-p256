@@ -9,10 +9,9 @@
     "build:verify": "cd ./scripts/verify && ./build_verify.sh",
     "build:eth_addr": "cd ./scripts/eth_addr && ./build_eth_addr.sh",
     "test": "NODE_OPTIONS=--max_old_space_size=0 mocha --timeout 0 -r ts-node/register 'test/**/*.ts'",
-    "reduction": "NODE_OPTIONS=--max_old_space_size=0 mocha --timeout 0 -r ts-node/register 'test/reduction.test.ts'",
     "groupsig-demo": "npx ts-node scripts/groupsign_cli.ts"
   },
-  "repository": "git@github.com:0xPARC/circom-ecdsa.git",
+  "repository": "git@github.com:privacy-scaling-explorations/circom-ecdsa-p256",
   "author": "0xPARC <hello@0xparc.org>",
   "license": "ISC",
   "dependencies": {
