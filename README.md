@@ -8,8 +8,13 @@ This repository provides proof-of-concept implementations of ECDSA operations on
 
 Circuits can be found in `circuits`. `scripts` contains various utility scripts (most importantly, scripts for building a few example zkSNARKs using the ECDSA circuit primitives). `test` contains some unit tests for the circuits, mostly for witness generation.
 
-## Install dependencies
+## Information
+Due to the nature of the P-256 curved compared to the bn254 circom backend (and Ethereum precompiles), we must used Big Integer representation of the scalars. Please see [this blog post](https://0xparc.org/blog/zk-ecdsa-2) from 0xPARC describing BigInt arithmetic for the original circom-ecdsa implementation.
 
+Additionally, we utilize Yi-sun's more update BigInt and ECC arithmetic methods from the [circom-pairing library](https://github.com/yi-sun/circom-pairing).
+
+## Install dependencies
+- Run `git submodule sync`
 - Run `yarn` at the top level to install npm dependencies (`snarkjs` and `circomlib`).
 - You'll also need `circom` version `>= 2.1.5` on your system. Installation instructions [here](https://docs.circom.io/getting-started/installation/).
 - If you want to build the `pubkeygen`, `eth_addr`, and `groupsig` circuits, you'll need to download a Powers of Tau file with `2^20` constraints and copy it into the `circuits` subdirectory of the project, with the name `pot20_final.ptau`. We do not provide such a file in this repo due to its large size. You can download and copy Powers of Tau files from the Hermez trusted setup from [this repository](https://github.com/iden3/snarkjs#7-prepare-phase-2).
