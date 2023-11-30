@@ -146,7 +146,7 @@ def get_ecdsa_func_str(n, k, stride_list):
 
 
 stride_list = [8]
-ecdsa_func_str = get_ecdsa_func_str(64, 4, stride_list)
+ecdsa_func_str = get_ecdsa_func_str(43, 6, stride_list)
 
 orig_stdout = sys.stdout
 f = open('../script_outputs/p256_out.circom', 'w')

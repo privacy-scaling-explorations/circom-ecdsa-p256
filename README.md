@@ -1,15 +1,20 @@
-# circom-ecdsa
+# circom-ecdsa-p256
 
-Implementation of ECDSA operations in circom.
+Implementation of ECDSA operations in circom for the P-256 curve.
 
 ## Project overview
 
-This repository provides proof-of-concept implementations of ECDSA operations in circom. **These implementations are for demonstration purposes only**. These circuits are not audited, and this is not intended to be used as a library for production-grade applications.
+This repository provides proof-of-concept implementations of ECDSA operations on the P-256 curve in circom. **These implementations are for demonstration purposes only**. These circuits are not audited, and this is not intended to be used as a library for production-grade applications.
 
 Circuits can be found in `circuits`. `scripts` contains various utility scripts (most importantly, scripts for building a few example zkSNARKs using the ECDSA circuit primitives). `test` contains some unit tests for the circuits, mostly for witness generation.
 
-## Install dependencies
+## Information
+Due to the nature of the P-256 curved compared to the bn254 circom backend (and Ethereum precompiles), we must used Big Integer representation of the scalars. Please see [this blog post](https://0xparc.org/blog/zk-ecdsa-2) from 0xPARC describing BigInt arithmetic for the original circom-ecdsa implementation.
 
+Additionally, we utilize Yi-sun's more update BigInt and ECC arithmetic methods from the [circom-pairing library](https://github.com/yi-sun/circom-pairing).
+
+## Install dependencies
+- Run `git submodule sync`
 - Run `yarn` at the top level to install npm dependencies (`snarkjs` and `circomlib`).
 - You'll also need `circom` version `>= 2.1.5` on your system. Installation instructions [here](https://docs.circom.io/getting-started/installation/).
 - If you want to build the `pubkeygen`, `eth_addr`, and `groupsig` circuits, you'll need to download a Powers of Tau file with `2^20` constraints and copy it into the `circuits` subdirectory of the project, with the name `pot20_final.ptau`. We do not provide such a file in this repo due to its large size. You can download and copy Powers of Tau files from the Hermez trusted setup from [this repository](https://github.com/iden3/snarkjs#7-prepare-phase-2).
@@ -37,25 +42,25 @@ The following circuits are implemented and can be found in `circuits/ecdsa.circo
 - `ECDSAPrivToPub`: Given a secp256k1 private key, outputs the corresponding public key by computing `(private_key) * G` where `G` is the base point of secp256k1.
 - `ECDSAVerifyNoPubkeyCheck`: Given a signature `(r, s)`, a message hash, and a secp256k1 public key, it follows ecdsa verification algorithm to extract `r'` from `s`, message hash and public key, and then compares `r'` with `r` to see if the signaure is correct. The output result is `1` if `r'` and `r` are equal, `0` otherwise.
 
-The 256-bits input and output are chunked and represented as `k` `n`-bits values where `k` is `4` and `n` is `64`. Please see above examples for concrete usages.
+The 256-bits input and output are chunked and represented as `k` `n`-bits values where `k` is `6` and `n` is `43`. Please see above examples for concrete usages.
 
 WARNING: Beware that the input to the above circuits should be properly checked and guarded (Lies on the curve, not equal to zero, etc). The purpose of the above circuits is to serve as building blocks but not as stand alone circuits to deploy.
 
 ## Benchmarks
 
-All benchmarks were run on a 16-core 3.0GHz, 32G RAM machine (AWS c5.4xlarge instance).
+All benchmarks were run on a 7700x, 32GB RAM machine
 
 |                                      | pubkeygen | eth_addr | groupsig | verify  |
 | ------------------------------------ | --------- | -------- | -------- | ------- |
-| Constraints                          | 95444     | 247380   | 250938   | 1508136 |
-| Circuit compilation                  | 21s       | 47s      | 48s      | 72s     |
-| Witness generation                   | 11s       | 11s      | 12s      | 175s    |
-| Trusted setup phase 2 key generation | 71s       | 94s      | 98s      | 841s    |
-| Trusted setup phase 2 contribution   | 9s        | 20s      | 19s      | 149s    |
-| Proving key size                     | 62M       | 132M     | 134M     | 934M    |
-| Proving key verification             | 61s       | 81s      | 80s      | 738s    |
-| Proving time                         | 3s        | 7s       | 6s       | 45s     |
-| Proof verification time              | 1s        | <1s      | 1s       | 1s      |
+| Constraints                          | 114724    | 247380   | 250938   | 1972905 |
+| Circuit compilation                  | 15s       | 47s      | 48s      | 43s     |
+| Witness generation                   | 6s        | 11s      | 12s      | 77s     |
+| Trusted setup phase 2 key generation | 46s       | 94s      | 98s      | ?s      |
+| Trusted setup phase 2 contribution   | 6s        | 20s      | 19s      | ?s      |
+| Proving key size                     | 102M      | 132M     | 134M     | ?M      |
+| Proving key verification             | 48s       | 81s      | 80s      | ?s      |
+| Proving time                         | 3s        | 7s       | 6s       | ?s      |
+| Proof verification time              | <1s       | <1s      | 1s       | ?s      |
 
 ## Testing
 

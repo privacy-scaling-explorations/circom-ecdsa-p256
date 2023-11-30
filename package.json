@@ -11,7 +11,7 @@
     "test": "NODE_OPTIONS=--max_old_space_size=0 mocha --timeout 0 -r ts-node/register 'test/**/*.ts'",
     "groupsig-demo": "npx ts-node scripts/groupsign_cli.ts"
   },
-  "repository": "git@github.com:0xPARC/circom-ecdsa.git",
+  "repository": "git@github.com:privacy-scaling-explorations/circom-ecdsa-p256",
   "author": "0xPARC <hello@0xparc.org>",
   "license": "ISC",
   "dependencies": {
