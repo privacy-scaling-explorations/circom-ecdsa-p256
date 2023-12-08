@@ -49,19 +49,19 @@ WARNING: Beware that the input to the above circuits should be properly checked 
 
 ## Benchmarks
 
-All benchmarks were run on a 7700x, 32GB RAM machine
+All benchmarks were run on an AMD 7700x, 32GB RAM machine
 
 |                                      | pubkeygen | eth_addr | groupsig | verify  |
 | ------------------------------------ | --------- | -------- | -------- | ------- |
 | Constraints                          | 114724    | 247380   | 250938   | 1972905 |
-| Circuit compilation                  | 15s       | 47s      | 48s      | 43s     |
-| Witness generation                   | 6s        | 11s      | 12s      | 77s     |
-| Trusted setup phase 2 key generation | 46s       | 94s      | 98s      | ?s      |
-| Trusted setup phase 2 contribution   | 6s        | 20s      | 19s      | ?s      |
-| Proving key size                     | 102M      | 132M     | 134M     | ?M      |
-| Proving key verification             | 48s       | 81s      | 80s      | ?s      |
-| Proving time                         | 3s        | 7s       | 6s       | ?s      |
-| Proof verification time              | <1s       | <1s      | 1s       | ?s      |
+| Circuit compilation                  | 15s       | 47s      | 48s      | 44s     |
+| Witness generation                   | 6s        | 11s      | 12s      | 78s     |
+| Trusted setup phase 2 key generation | 46s       | 94s      | 98s      | 81s     |
+| Trusted setup phase 2 contribution   | 6s        | 20s      | 19s      | 82s     |
+| Proving key size                     | 102M      | 132M     | 134M     | 1.2G    |
+| Proving key verification             | 48s       | 81s      | 80s      | 45      |
+| Proving time                         | 3s        | 7s       | 6s       | 26      |
+| Proof verification time              | <1s       | <1s      | 1s       | 1s      |
 
 ## Testing
 

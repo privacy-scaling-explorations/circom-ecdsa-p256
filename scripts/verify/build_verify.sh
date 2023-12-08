@@ -4,6 +4,8 @@ PHASE1=../../circuits/pot21_final.ptau
 BUILD_DIR=../../build/verify
 CIRCUIT_NAME=verify
 
+export NODE_OPTIONS=--max_old_space_size=16384
+
 if [ -f "$PHASE1" ]; then
     echo "Found Phase 1 ptau file"
 else
